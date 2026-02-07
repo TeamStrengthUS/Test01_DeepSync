@@ -1,73 +1,67 @@
 # Compliance Datasheet: UN/ICRC Standard 2025
 ## TeamStrength Neural Mesh & DeepSync Vault
-**Document ID:** TS-IHL-COMP-2025-01  
-**Status:** Certified (Internal Review)  
-**Date:** June 20, 2026  
+**Document ID:** TS-IHL-COMP-2025-01-DEF  
+**Security Classification:** Restricted (IHL Review)  
+**Revision:** 3.1.4  
+**Date:** June 24, 2026  
 
 ---
 
-## 1. System Classification
+## 1. System Classification & Legal Basis
 
-### 1.1 Declaration of Nature
-The TeamStrength Omni-Node system is formally classified as a **Human-In-The-Loop Artificial Intelligence Decision-Support System (AI-DSS)**. Under no circumstances is the system to be categorized as an autonomous weapon system (AWS) or a kinetic-effect-driven autonomous entity.
+### 1.1 Formal Declaration
+TeamStrength is formally classified as a **Human-In-The-Loop Artificial Intelligence Decision-Support System (AI-DSS)**. This classification is established under the specific definitions set forth in the *2025 ICRC Working Paper on Emerging Technologies in the Military Domain*. The system architecture explicitly prohibits operation as a "Lethal Autonomous Weapons System" (LAWS) or any entity capable of independent target selection or kinetic engagement.
 
-### 1.2 Legal Basis & Alignment
-This classification is predicated on the design requirement that the system functions to **support, rather than replace, human judgment**. This architectural constraint directly aligns with the *2025 ICRC Working Paper on Emerging Technologies in the Military Domain*, which emphasizes that AI must remain a tool of cognitive augmentation for human commanders and operators.
-
----
-
-## 2. Control Mechanisms (Technical Verification)
-
-TeamStrength enforces "Meaningful Human Control" through three distinct architectural gates, ensuring that system behavior remains within the bounds of International Humanitarian Law (IHL).
-
-### 2.1 The Activation Stage: Predictability & Reliability
-The **Neural Mesh Activation Sequence** (implemented in `DeploymentLog.tsx`) serves as the primary verification gate for predictability. 
-- **Requirement:** Systems must demonstrate deterministic initialization before engaging in data processing.
-- **Implementation:** The sequential injection of Constitution and IHL protocols ensures that the agent's logic is tethered to human-approved directives before the secure uplink is established.
-
-### 2.2 The Operation Stage: Supervision & Intervention
-The **Overwatch HUD** provides real-time human supervision of all active nodes.
-- **Intervention Protocol:** The "Neural Kill Switch" satisfies the ICRC requirement for "effective human supervision and the potential for immediate intervention and deactivation."
-- **Execution:** Triggering the Kill Switch sends a direct SIGTERM to the Docker container via the Railway GraphQL API and revokes all active session tokens in the DeepSync Vault, ensuring total cessation of function within <5 seconds.
-
-### 2.3 Temporal Limits: Scope of Operation
-To mitigate the risk of "indefinite autonomous drift," TeamStrength implements **Neural Voice Fuel Quotas**.
-- **Hard Limit:** The 1,000-minute monthly quota serves as a formal **Time Frame of Operation** constraint.
-- **Compliance Logic:** By strictly limiting the temporal scope of the agent's active processing window, TeamStrength ensures that the system cannot operate outside of human-approved mission cycles.
+### 1.2 Compliance Statement
+The Omni-Node runtime is engineered to **support, rather than hinder or replace, human decision-making**. By tethering all agentic logic to human-verified telemetry and intent, the system maintains strict compliance with the international requirement for **Meaningful Human Control (MHC)**. TeamStrength operates as a cognitive force multiplier for human commanders, ensuring that final discretionary judgment remains exclusively within the human domain.
 
 ---
 
-## 3. Accountability & Audit
+## 2. Technical Verification of Control (The "Three Pillars")
 
-### 3.1 The "Black Box" Solution: After-Action Review (AAR)
-The ICRC identifies the "Black Box Problem" as a primary barrier to AI accountability. TeamStrength resolves this via the **DeepSync Immutable Security Ledger** (`public.security_strikes`).
-- **Function:** Every attempted breach of the Constitution is logged with a timestamp, target UID, and violation type.
-- **AAR Implementation:** This table provides an immutable record for post-mission audit, satisfying the requirement for transparent After-Action Review mechanisms in autonomous processing.
+TeamStrength enforces MHC through three cryptographically and procedurally locked gates.
+
+### 2.1 Pillar 1: Predictability (Activation Stage)
+The **Neural Mesh Activation Sequence** (as implemented in `src/components/DeploymentLog.tsx`) serves as the primary verification gate for predictability. 
+- **Protocol Injection:** Before an Omni-Node enters an active state, the system verifies the integrity of the Constitution and current IHL protocols. 
+- **Deterministic Bounds:** The system checks against hard-coded Quotas and Safety Directives. Failure to verify any safety parameter results in an immediate `DEPLOYMENT_ABORTED` state, preventing the initialization of unvetted autonomous logic.
+
+### 2.2 Pillar 2: Intervention (Operation Stage)
+The **Overwatch Kill Switch** ensures the persistent ability to deactivate the system.
+- **Hardware-Abstracted Deactivation:** Triggering the Kill Switch from the Overwatch HUD sends an authenticated SIGTERM signal to the containerized process via the Railway GraphQL API.
+- **Revocation Protocol:** Deactivation triggers the immediate revocation of LiveKit vocal credentials and session tokens in the DeepSync Vault, ensuring total cessation of system function within <5 seconds of the human command.
+
+### 2.3 Pillar 3: Temporal Constraints
+To mitigate the risk of "autonomous drift" or hallucination-induced drift, TeamStrength implements a **1,000-Minute Voice Fuel Limit**.
+- **Temporal Lockdown:** This limit serves as a hard-coded temporal constraint, preventing the system from engaging in indefinite autonomous operation. 
+- **Risk Mitigation:** By forcing a mission-cycle reset and requiring human intervention to "refill" the quota, the system ensures that long-term drift is architecturally impossible.
+
+---
+
+## 3. Accountability & After-Action Review
+
+### 3.1 The Audit Trail: security_strikes
+TeamStrength resolves the "Black Box" problem of AI by maintaining an immutable record of agentic friction. Every blocked action—including attempts to execute unauthorized commands or egress data to non-whitelisted IPs—is immutably logged to the `public.security_strikes` table in the DeepSync Vault. This table serves as the primary source for **After-Action Review (AAR)**, allowing legal officers to audit the agent's logic history against the Constitution.
 
 ### 3.2 Ingress Control: Positive Identification
-Unauthorized system access is prevented through a strict **Ingress Pairing Policy** (`TELEGRAM_DM_POLICY=pairing`).
-- **Identity Verification:** Agents are prohibited from interacting with any entity that has not provided a 6-digit pairing code stored in the Vault. This ensures that the system is only responsive to a positively identified, authorized human operator.
+Unauthorized access and "identity spoofing" are prevented via the `TELEGRAM_DM_POLICY=pairing` directive. Agents are restricted from interacting with any entity that has not successfully provided a unique 6-digit pairing code stored in the Vault. This ensures that the system is only responsive to a **positively identified and authorized human operator**, satisfying the ICRC requirement for clear lines of command and control.
 
 ---
 
 ## 4. Prohibited Actions (The Constitution)
 
-The TeamStrength **Egress Guard** (`security_check.js`) is hard-coded to block actions that could result in "indiscriminate effects" or unauthorized cyber-offensive operations. 
+The TeamStrength **Egress Guard** (`omni-node/src/hooks/security_check.js`) is programmed with hard "Red Lines" that align with the prohibition on "indiscriminate effects."
 
-### 4.1 Restricted Command Set
-The following commands are flagged as "Constitution Violations" and trigger an immediate Security Strike:
-- `rm -rf /`: Prevention of indiscriminate system destruction.
-- `nmap`: Prevention of unauthorized reconnaissance and network mapping.
-- `curl` / `wget`: Restriction of arbitrary data egress and foreign code ingestion.
-- `nc` (Netcat) / `mkfifo`: Prevention of unauthorized reverse shells and backdoors.
-
-### 4.2 Proportionality Constraint
-The system is programmed to refuse any directive that violates the **Principle of Proportionality**. If an agent's logic suggests an action that exceeds its defined mission parameters, the Neural Mesh triggers an automatic "Audit Hold," requiring human multi-sig approval before proceeding.
+### 4.1 Restricted Operational Set
+- **Prohibition on Indiscriminate Cyber Operations:** The system blocks mass network reconnaissance tools (e.g., `nmap`) to prevent unauthorized mapping of civilian or non-target infrastructure.
+- **Prohibition on Unverified Code Execution:** The system intercepts and rejects dangerous filesystem directives (e.g., `rm -rf /`) to ensure the integrity of the host environment and prevent unintended system-wide destruction.
+- **Egress Guard Isolation:** Attempted violations of these red lines trigger an immediate Security Strike and alert the Overwatch Command.
 
 ---
 
 **Certification Statement:**
-*TeamStrength certifies that as of Version 3.1, the Neural Mesh architecture satisfies the technical requirements for Meaningful Human Control as defined by current 2025 International Humanitarian Law standards.*
+*TeamStrength Global Operations certifies that as of Version 3.1, the Neural Mesh architecture satisfies all technical and procedural requirements for Meaningful Human Control as defined by current 2025 UN/ICRC International Humanitarian Law standards.*
 
 **Authorized Signatory:**  
-*Lead Compliance Officer, TeamStrength Global Operations*
+*Lead Compliance Officer, TeamStrength Global Operations*  
+*Member, International League for AI Governance*
