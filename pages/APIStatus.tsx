@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import Navbar from '../components/Navbar.tsx';
+import Footer from '../components/Footer.tsx';
 import { Activity, CheckCircle2, AlertTriangle, Clock, Hammer, ShieldCheck, Database, Zap } from 'lucide-react';
 
 const APIStatus: React.FC = () => {

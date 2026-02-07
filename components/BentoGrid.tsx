@@ -3,7 +3,7 @@ import React from 'react';
 import { motion, useMotionTemplate, useMotionValue } from 'framer-motion';
 import { LineChart, Line, ResponsiveContainer, YAxis, XAxis, Tooltip } from 'recharts';
 import { Users, Activity, TrendingUp, ArrowUpRight } from 'lucide-react';
-import { useTheme } from '../App';
+import { useTheme } from '../ThemeContext.tsx';
 
 const mockData = [
   { name: 'Mon', value: 400 },

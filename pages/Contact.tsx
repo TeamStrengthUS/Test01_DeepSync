@@ -1,10 +1,10 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import Navbar from '../components/Navbar.tsx';
+import Footer from '../components/Footer.tsx';
 import { Send, Globe, Mail, MessageSquare, Sparkles } from 'lucide-react';
-import { useTheme } from '../App';
+import { useTheme } from '../ThemeContext.tsx';
 
 const ParticleField: React.FC = () => {
   const { theme } = useTheme();

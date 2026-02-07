@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import Navbar from '../components/Navbar';
-import Logo from '../components/Logo';
-import Footer from '../components/Footer';
+import Navbar from '../components/Navbar.tsx';
+import Logo from '../components/Logo.tsx';
+import Footer from '../components/Footer.tsx';
 import { Bot, Brain, Sparkles, Target, Zap, MessageCircle, BarChart, Shield, ArrowRight, Users } from 'lucide-react';
 
 const AgentCard = ({ icon: Icon, title, desc, color }: { icon: any, title: string, desc: string, color: string }) => (

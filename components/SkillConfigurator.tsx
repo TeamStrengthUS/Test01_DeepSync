@@ -12,7 +12,6 @@ import {
   CheckCircle2, 
   ArrowRight 
 } from 'lucide-react';
-// Fixed: Ensuring named exports are explicitly recognized
 import { Link } from 'react-router-dom';
 
 interface Skill {
@@ -102,7 +101,7 @@ const SkillCard: React.FC<{
     <div className={`relative p-8 rounded-[2.5rem] border transition-all duration-500 overflow-hidden flex flex-col h-full ${
       isLocked ? 'bg-slate-100/50 dark:bg-void/50 border-slate-200 dark:border-white/5 grayscale' : 
       isEnabled ? 'bg-white dark:bg-surface border-teal/30 shadow-[0_0_40px_rgba(45,212,191,0.15)] animate-power-glow-card' : 
-      'bg-white dark:bg-surface border-slate-200 dark:border-white/5'
+      'bg-white dark:bg-surface border border-slate-200 dark:border-white/5'
     }`}>
       {isLocked && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/40 dark:bg-void/40 backdrop-blur-[2px] p-6 text-center">
@@ -114,7 +113,7 @@ const SkillCard: React.FC<{
 
       <div className="flex justify-between items-start mb-6">
         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border transition-colors ${
-          isEnabled ? 'bg-teal/10 border-teal/20 text-teal' : 'bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-400'
+          isEnabled ? 'bg-teal/10 border-teal/20 text-teal' : 'bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-400'
         }`}>
           <skill.icon size={24} />
         </div>

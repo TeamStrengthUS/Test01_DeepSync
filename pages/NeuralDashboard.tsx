@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -24,7 +25,8 @@ import {
   Tooltip, 
   ResponsiveContainer 
 } from 'recharts';
-import { useTheme } from '../App';
+// Fixed: Corrected import path for useTheme
+import { useTheme } from '../ThemeContext.tsx';
 
 // --- MOCK DATA & CONSTANTS ---
 const INITIAL_CHART_DATA = Array.from({ length: 20 }, (_, i) => ({

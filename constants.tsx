@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Activity, Zap, BarChart3, Users, Settings, Mail, Shield, Globe } from 'lucide-react';
-import { Feature, Testimonial, Metric } from './types';
+import { Feature, Testimonial, Metric } from './types.ts';
 
 export const FEATURES: Feature[] = [
   {

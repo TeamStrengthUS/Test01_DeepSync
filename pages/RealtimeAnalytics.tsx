@@ -31,7 +31,8 @@ import {
   ComposedChart,
   Line
 } from 'recharts';
-import { useTheme } from '../App';
+// Fixed: Corrected import path for useTheme
+import { useTheme } from '../ThemeContext.tsx';
 
 // --- MOCK DATA ---
 const revenueData = [

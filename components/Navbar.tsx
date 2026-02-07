@@ -1,11 +1,10 @@
 
 import React, { useState } from 'react';
-// Fixed: Ensuring named exports are correctly imported
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sun, Moon, Menu, X, ArrowRight, Zap } from 'lucide-react';
-import Logo from './Logo';
-import { useTheme } from '../App';
+import Logo from './Logo.tsx';
+import { useTheme } from '../ThemeContext.tsx';
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();

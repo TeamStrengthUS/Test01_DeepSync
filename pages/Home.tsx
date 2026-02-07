@@ -1,11 +1,11 @@
 
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import Navbar from '../components/Navbar';
-import BentoGrid from '../components/BentoGrid';
-import Testimonials from '../components/Testimonials';
-import Footer from '../components/Footer';
-import { FEATURES } from '../constants';
+import Navbar from '../components/Navbar.tsx';
+import BentoGrid from '../components/BentoGrid.tsx';
+import Testimonials from '../components/Testimonials.tsx';
+import Footer from '../components/Footer.tsx';
+import { FEATURES } from '../constants.tsx';
 import { ArrowRight, Mail, Sparkles } from 'lucide-react';
 
 const BackgroundBeams = () => (

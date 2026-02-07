@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Zap, ShieldCheck, Cpu, Mic, Activity, AlertCircle, RefreshCw, Fuel } from 'lucide-react';
-import SkillConfigurator from '../components/SkillConfigurator';
+import SkillConfigurator from '../components/SkillConfigurator.tsx';
 
 const VoiceFuelGauge: React.FC = () => {
   const [usage, setUsage] = useState(450);

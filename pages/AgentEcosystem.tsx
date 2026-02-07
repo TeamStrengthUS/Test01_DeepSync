@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import Logo from '../components/Logo';
+import Navbar from '../components/Navbar.tsx';
+import Footer from '../components/Footer.tsx';
+import Logo from '../components/Logo.tsx';
 import { Network, Bot, Cpu, Zap } from 'lucide-react';
 
 const AgentEcosystem: React.FC = () => {

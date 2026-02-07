@@ -28,17 +28,16 @@ import {
   UserPlus,
   Activity
 } from 'lucide-react';
-// Fixed: Explicitly importing named exports from react-router-dom
 import { Link, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-import Logo from '../components/Logo';
-import UserAvatar from '../components/UserAvatar';
-import { DASHBOARD_METRICS } from '../constants';
+import Logo from '../components/Logo.tsx';
+import UserAvatar from '../components/UserAvatar.tsx';
+import { DASHBOARD_METRICS } from '../constants.tsx';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useTheme } from '../App';
-import AgenticLayer from './AgenticLayer';
-import NeuralAbilities from './NeuralAbilities';
-import Overwatch from './Overwatch';
-import NeuralDashboard from './NeuralDashboard';
+import { useTheme } from '../ThemeContext.tsx';
+import AgenticLayer from './AgenticLayer.tsx';
+import NeuralAbilities from './NeuralAbilities.tsx';
+import Overwatch from './Overwatch.tsx';
+import NeuralDashboard from './NeuralDashboard.tsx';
 
 const data = [
   { name: 'Jan', value: 4000 },

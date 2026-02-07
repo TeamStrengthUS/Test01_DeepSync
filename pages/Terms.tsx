@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import Navbar from '../components/Navbar.tsx';
+import Footer from '../components/Footer.tsx';
 import { Zap, Globe, FileText, Activity } from 'lucide-react';
 
 const Terms: React.FC = () => {
