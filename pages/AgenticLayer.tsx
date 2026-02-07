@@ -20,8 +20,9 @@ import {
   FileText,
   Fuel
 } from 'lucide-react';
-import SkillConfigurator from '../components/SkillConfigurator';
-import ChannelMatrix from '../components/ChannelMatrix';
+import SkillConfigurator from '../components/SkillConfigurator.tsx';
+import ChannelMatrix from '../components/ChannelMatrix.tsx';
+import DeploymentLog from '../components/DeploymentLog.tsx';
 
 const PowerGlowCard: React.FC<{ children: React.ReactNode; isProvisioning?: boolean; className?: string }> = ({ children, isProvisioning, className = "" }) => (
   <div className={`relative bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-[2.5rem] p-8 overflow-hidden transition-all duration-700 glass-card ${isProvisioning ? 'ring-2 ring-teal/50 shadow-[0_0_50px_rgba(45,212,191,0.2)]' : ''} ${className}`}>
@@ -75,13 +76,22 @@ const AgenticLayer: React.FC = () => {
   const [provisioned, setProvisioned] = useState(false);
   const [isSuspended, setIsSuspended] = useState(false);
   const [strikeCount, setStrikeCount] = useState(2);
+  const [provisionError, setProvisionError] = useState<string | null>(null);
 
   const handleProvision = () => {
+    setProvisionError(null);
     setIsProvisioning(true);
-    setTimeout(() => {
-      setIsProvisioning(false);
-      setProvisioned(true);
-    }, 4000);
+    // Simulation logic for potential quota error
+    if (token === 'FAIL') {
+      setTimeout(() => {
+        setProvisionError('QUOTA EXCEEDED. DEPLOYMENT ABORTED.');
+      }, 2000);
+    }
+  };
+
+  const onDeploymentComplete = () => {
+    setIsProvisioning(false);
+    setProvisioned(true);
   };
 
   const handleEmergencySuspend = () => {
@@ -121,7 +131,9 @@ const AgenticLayer: React.FC = () => {
                   <Bot size={24} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black font-geist text-slate-900 dark:text-white uppercase">Omni-Node Provisioning</h3>
+                  <h3 className="text-xl font-black font-geist text-slate-900 dark:text-white uppercase">
+                    {isProvisioning ? 'Activating Neural Mesh' : 'Omni-Node Provisioning'}
+                  </h3>
                   <p className="text-[10px] text-slate-400 font-black tracking-widest uppercase">DeepSync Vault Ingress</p>
                 </div>
               </div>
@@ -133,67 +145,87 @@ const AgenticLayer: React.FC = () => {
               )}
             </div>
 
-            {!provisioned ? (
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-[0.2em] px-2">Omni-Node Bot Token</label>
-                  <div className="relative group">
-                    <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 dark:text-white/20 group-focus-within:text-teal transition-colors" size={18} />
-                    <input 
-                      type="password" 
-                      value={token}
-                      onChange={(e) => setToken(e.target.value)}
-                      placeholder="Paste Token from @BotFather or Slack..." 
-                      className="w-full bg-slate-50 dark:bg-void/50 border border-slate-200 dark:border-white/5 focus:border-teal/50 rounded-2xl py-5 pl-14 pr-5 text-slate-900 dark:text-white outline-none transition-all placeholder:text-slate-300 dark:placeholder:text-white/10 font-mono text-sm"
-                    />
-                  </div>
-                </div>
-
-                <button 
-                  onClick={handleProvision}
-                  disabled={!token || isProvisioning}
-                  className="w-full py-5 bg-teal text-black font-black rounded-2xl text-lg hover:shadow-[0_0_40px_rgba(45,212,191,0.5)] transition-all disabled:opacity-50 relative overflow-hidden group"
+            <AnimatePresence mode="wait">
+              {isProvisioning ? (
+                <motion.div
+                  key="log"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="py-4"
                 >
-                  <span className="relative z-10 flex items-center justify-center gap-3">
-                    {isProvisioning ? 'Deploying Omni-Node...' : 'Authorize Ingress'}
-                    <Zap size={20} className={isProvisioning ? 'animate-bounce' : ''} />
-                  </span>
-                  {isProvisioning && (
-                    <motion.div 
-                      initial={{ x: '-100%' }}
-                      animate={{ x: '100%' }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                      className="absolute inset-0 bg-white/20"
-                    />
+                  <DeploymentLog 
+                    onComplete={onDeploymentComplete} 
+                    isError={!!provisionError}
+                    errorMessage={provisionError || undefined}
+                  />
+                  {provisionError && (
+                    <button 
+                      onClick={() => setIsProvisioning(false)}
+                      className="mt-6 text-[10px] font-black text-teal uppercase tracking-widest hover:underline"
+                    >
+                      [ Return to Configuration ]
+                    </button>
                   )}
-                </button>
-              </div>
-            ) : (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="text-center py-8 space-y-8"
-              >
-                <div className="p-8 bg-teal/5 border border-teal/20 rounded-[2rem] inline-block shadow-[0_0_30px_rgba(45,212,191,0.1)] relative">
-                   <div className="absolute -top-3 -right-3 px-3 py-1 bg-teal text-black text-[8px] font-black rounded-full shadow-lg animate-bounce">SYNCED</div>
-                   <p className="text-[10px] font-black text-teal uppercase tracking-widest mb-4">Pairing Code Generated</p>
-                   <div className="text-6xl font-black font-geist tracking-[0.3em] text-slate-900 dark:text-white mb-4">
-                     452-901
-                   </div>
-                   <p className="text-sm font-bold text-slate-500 dark:text-white/60 max-w-sm mx-auto">
-                     "Send this to your bot to authorize identity."
-                   </p>
-                </div>
-                <div className="flex justify-center gap-4">
-                  <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-white/5 rounded-xl text-[10px] font-black text-slate-400 uppercase tracking-widest border border-white/5">
-                    <CheckCircle size={14} className="text-teal" /> Omni-Node: Railway-Edge-01
+                </motion.div>
+              ) : !provisioned ? (
+                <motion.div key="form" className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-[0.2em] px-2">Omni-Node Bot Token</label>
+                    <div className="relative group">
+                      <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 dark:text-white/20 group-focus-within:text-teal transition-colors" size={18} />
+                      <input 
+                        type="password" 
+                        value={token}
+                        onChange={(e) => setToken(e.target.value)}
+                        placeholder="Paste Token from @BotFather or Slack..." 
+                        className="w-full bg-slate-50 dark:bg-void/50 border border-slate-200 dark:border-white/5 focus:border-teal/50 rounded-2xl py-5 pl-14 pr-5 text-slate-900 dark:text-white outline-none transition-all placeholder:text-slate-300 dark:placeholder:text-white/10 font-mono text-sm"
+                      />
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-white/5 rounded-xl text-[10px] font-black text-slate-400 uppercase tracking-widest border border-white/5">
-                    <CheckCircle size={14} className="text-teal" /> Vault: Sub-0ms Sync
+
+                  <button 
+                    onClick={handleProvision}
+                    disabled={!token || isProvisioning}
+                    className="w-full py-5 bg-teal text-black font-black rounded-2xl text-lg hover:shadow-[0_0_40px_rgba(45,212,191,0.5)] transition-all disabled:opacity-50 relative overflow-hidden group"
+                  >
+                    <span className="relative z-10 flex items-center justify-center gap-3">
+                      Authorize Ingress
+                      <Zap size={20} />
+                    </span>
+                  </button>
+                  <p className="text-[9px] text-center text-slate-500 font-bold uppercase tracking-widest">
+                    Tip: Enter "FAIL" as token to test error state.
+                  </p>
+                </motion.div>
+              ) : (
+                <motion.div 
+                  key="result"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-center py-8 space-y-8"
+                >
+                  <div className="p-8 bg-teal/5 border border-teal/20 rounded-[2rem] inline-block shadow-[0_0_30px_rgba(45,212,191,0.1)] relative">
+                     <div className="absolute -top-3 -right-3 px-3 py-1 bg-teal text-black text-[8px] font-black rounded-full shadow-lg animate-bounce">SYNCED</div>
+                     <p className="text-[10px] font-black text-teal uppercase tracking-widest mb-4">Pairing Code Generated</p>
+                     <div className="text-6xl font-black font-geist tracking-[0.3em] text-slate-900 dark:text-white mb-4">
+                       452-901
+                     </div>
+                     <p className="text-sm font-bold text-slate-500 dark:text-white/60 max-w-sm mx-auto">
+                       "Send this to your bot to authorize identity."
+                     </p>
                   </div>
-                </div>
-              </motion.div>
-            )}
+                  <div className="flex justify-center gap-4">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-white/5 rounded-xl text-[10px] font-black text-slate-400 uppercase tracking-widest border border-white/5">
+                      <CheckCircle size={14} className="text-teal" /> Omni-Node: Railway-Edge-01
+                    </div>
+                    <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-white/5 rounded-xl text-[10px] font-black text-slate-400 uppercase tracking-widest border border-white/5">
+                      <CheckCircle size={14} className="text-teal" /> Vault: Sub-0ms Sync
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </PowerGlowCard>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
