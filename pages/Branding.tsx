@@ -2,9 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import Navbar from '../components/Navbar.tsx';
 import Logo from '../components/Logo.tsx';
-import Footer from '../components/Footer.tsx';
 import { 
   Copy, 
   Palette, 
@@ -19,8 +17,11 @@ import {
   Database,
   Brain,
   Layers,
-  Activity
+  Activity,
+  Lock
 } from 'lucide-react';
+
+const IS_ADMIN = true; // Consistent with Overwatch access logic
 
 const BrandingCard: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className = "" }) => (
   <div className={`bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-[2rem] p-8 relative overflow-hidden group shadow-xl dark:shadow-none transition-all duration-300 ${className}`}>
@@ -33,7 +34,7 @@ const BrandingCard: React.FC<{ title: string; children: React.ReactNode; classNa
 );
 
 const NomenclatureItem: React.FC<{ term: string; definition: string; icon: any; category: string }> = ({ term, definition, icon: Icon, category }) => (
-  <div className="p-8 bg-slate-50 dark:bg-void border border-slate-200 dark:border-white/5 rounded-[2.5rem] group hover:border-teal/30 transition-all flex flex-col h-full">
+  <div className="p-8 bg-slate-50 dark:bg-void border border-slate-200 dark:border-white/5 rounded-[2.5rem] group hover:border-teal/30 transition-all flex flex-col h-full text-left">
     <div className="flex justify-between items-start mb-6">
       <div className="w-12 h-12 rounded-2xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-400 group-hover:text-teal transition-colors shadow-sm">
         <Icon size={20} />
@@ -57,20 +58,28 @@ const NomenclatureItem: React.FC<{ term: string; definition: string; icon: any; 
 );
 
 const Branding: React.FC = () => {
-  return (
-    <div className="min-h-screen bg-lightSurface dark:bg-void text-slate-900 dark:text-white transition-colors duration-300">
-      <Navbar />
+  if (!IS_ADMIN) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-12">
+        <Lock size={64} className="text-red-500 mb-6" />
+        <h1 className="text-4xl font-black font-geist text-white mb-4 uppercase">Access Restricted</h1>
+        <p className="text-slate-400 font-medium">Persona assets require @teamstrength.com administrative clearance.</p>
+      </div>
+    );
+  }
 
-      <header className="pt-48 pb-24 px-6 container mx-auto max-w-7xl">
+  return (
+    <div className="bg-transparent text-slate-900 dark:text-white transition-colors duration-300">
+      <header className="pb-24 max-w-7xl text-left">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="max-w-3xl text-left"
+          className="max-w-3xl"
         >
           <span className="text-teal font-black tracking-widest uppercase text-[10px] mb-4 block">TEAMSTRENGTH.US • Strategic Nomenclature v3.1</span>
           <h1 className="text-6xl md:text-8xl font-black font-geist tracking-tighter mb-8 leading-none text-slate-900 dark:text-white">
-            Brand <span className="iridescent-gradient bg-clip-text text-transparent">Identity.</span>
+            Digital <span className="iridescent-gradient bg-clip-text text-transparent">Persona.</span>
           </h1>
           <p className="text-xl text-slate-500 dark:text-white/40 leading-relaxed font-medium">
             Defining the intersection of technical architecture and agentic experience. A unified language for high-performance intelligence.
@@ -78,7 +87,7 @@ const Branding: React.FC = () => {
         </motion.div>
       </header>
 
-      <main className="px-6 container mx-auto max-w-7xl space-y-24 pb-32">
+      <div className="container mx-auto max-w-7xl space-y-24 pb-32">
         
         {/* Nomenclature Section */}
         <section className="space-y-12">
@@ -137,7 +146,7 @@ const Branding: React.FC = () => {
         </section>
 
         {/* Scale & Contrast Section */}
-        <section className="space-y-8">
+        <section className="space-y-8 text-left">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-black flex items-center gap-3 text-slate-900 dark:text-white">
               <Maximize2 className="text-teal" size={24} /> Scale & Contrast
@@ -200,7 +209,7 @@ const Branding: React.FC = () => {
         </section>
 
         {/* Signature Glow Section */}
-        <section className="space-y-8">
+        <section className="space-y-8 text-left">
           <h2 className="text-2xl font-black flex items-center gap-3 text-slate-900 dark:text-white">
             <Sparkles className="text-teal" size={24} /> Signature Glow System
           </h2>
@@ -325,9 +334,7 @@ const Branding: React.FC = () => {
               </div>
            </BrandingCard>
         </section>
-      </main>
-
-      <Footer />
+      </div>
     </div>
   );
 };

@@ -26,7 +26,8 @@ import {
   ShieldAlert as OverwatchIcon,
   LogOut,
   UserPlus,
-  Activity
+  Activity,
+  Palette
 } from 'lucide-react';
 import { Link, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import Logo from '../components/Logo.tsx';
@@ -38,6 +39,7 @@ import AgenticLayer from './AgenticLayer.tsx';
 import NeuralAbilities from './NeuralAbilities.tsx';
 import Overwatch from './Overwatch.tsx';
 import NeuralDashboard from './NeuralDashboard.tsx';
+import Branding from './Branding.tsx';
 
 const data = [
   { name: 'Jan', value: 4000 },
@@ -135,6 +137,7 @@ const DashboardOverview = () => {
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={data}>
                 <defs>
+                  {/* Fixed: Removed duplicate x1 attribute in linearGradient */}
                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#2DD4BF" stopOpacity={0.4}/>
                     <stop offset="95%" stopColor="#2DD4BF" stopOpacity={0}/>
@@ -227,7 +230,8 @@ const SidebarContent: React.FC<{ onLinkClick?: () => void }> = ({ onLinkClick })
         <SidebarItem onClick={onLinkClick} icon={<Database size={20} />} label="DeepSync Vault" to="#" />
         <div className="pt-8 text-[10px] text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] font-black mb-4 px-4">Governance</div>
         <SidebarItem onClick={onLinkClick} icon={<OverwatchIcon size={20} />} label="Overwatch HUD" to="/dashboard/overwatch" active={location.pathname === '/dashboard/overwatch'} isRestricted />
-        <SidebarItem onClick={onLinkClick} icon={<ShieldAlert size={20} />} label="The Constitution" to="/branding" />
+        <SidebarItem onClick={onLinkClick} icon={<Palette size={20} />} label="Digital Persona" to="/dashboard/branding" active={location.pathname === '/dashboard/branding'} isRestricted />
+        <SidebarItem onClick={onLinkClick} icon={<ShieldAlert size={20} />} label="The Constitution" to="#" />
         <SidebarItem onClick={onLinkClick} icon={<Settings size={20} />} label="System Protocols" to="#" />
       </nav>
 
@@ -432,6 +436,7 @@ const Dashboard: React.FC = () => {
             <Route path="abilities" element={<NeuralAbilities />} />
             <Route path="overview" element={<DashboardOverview />} />
             <Route path="overwatch" element={<Overwatch />} />
+            <Route path="branding" element={<Branding />} />
           </Routes>
         </div>
       </main>

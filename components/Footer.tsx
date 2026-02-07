@@ -14,13 +14,13 @@ const Footer: React.FC = () => {
     { label: 'Skills Configurator', path: '/dashboard/abilities' },
     { label: 'DeepSync Vault', path: '/deepsync' },
     { label: 'Team IQ Node', path: '/intelligence' },
-    { label: 'The Constitution', path: '/branding' },
+    { label: 'The Constitution', path: '/dashboard/branding' },
     { label: 'Pricing', path: '/pricing' },
   ];
 
   const RESOURCE_LINKS = [
     { label: 'Documentation', path: '/docs' },
-    { label: 'Brand Guidelines', path: '/branding' },
+    { label: 'Digital Persona', path: '/dashboard/branding' },
     { label: 'Mesh Status', path: '/status' },
     { label: 'Community', path: '/community' },
     { label: 'Contact Sales', path: '/contact' }
@@ -38,7 +38,7 @@ const Footer: React.FC = () => {
             <Link to="/" className="w-fit">
               <Logo size="md" />
             </Link>
-            <p className="text-slate-500 dark:text-white/40 leading-relaxed text-sm max-w-xs font-medium">
+            <p className="text-slate-500 dark:text-white/40 leading-relaxed font-medium text-sm max-w-xs">
               The high-performance intelligence layer for modern teams. Built on the unified Neural Mesh for absolute state precision.
             </p>
             <div className="flex items-center gap-4">

@@ -7,7 +7,6 @@ import Login from './pages/Login.tsx';
 import Register from './pages/Register.tsx';
 import Dashboard from './pages/Dashboard.tsx';
 import Contact from './pages/Contact.tsx';
-import Branding from './pages/Branding.tsx';
 import Product from './pages/Product.tsx';
 import SignatureExport from './pages/SignatureExport.tsx';
 import Privacy from './pages/Privacy.tsx';
@@ -33,7 +32,6 @@ const App: React.FC = () => {
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard/*" element={<Dashboard />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/branding" element={<Branding />} />
             <Route path="/signature" element={<SignatureExport />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />

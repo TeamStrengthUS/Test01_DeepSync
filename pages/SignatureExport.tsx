@@ -12,8 +12,8 @@ const SignatureExport: React.FC = () => {
     <div className="min-h-screen bg-white text-slate-900 font-inter">
       {/* UI Overlay */}
       <div className="fixed top-0 inset-x-0 p-6 flex justify-between items-center bg-white/80 backdrop-blur-md border-b border-slate-100 z-50 no-print">
-        <Link to="/branding" className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-400 hover:text-teal transition-colors">
-          <ArrowLeft size={16} /> Back to Brand
+        <Link to="/dashboard/branding" className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-400 hover:text-teal transition-colors">
+          <ArrowLeft size={16} /> Back to Persona
         </Link>
         
         <div className="flex items-center gap-6">
