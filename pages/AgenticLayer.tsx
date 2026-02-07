@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Bot, 
@@ -17,7 +17,9 @@ import {
   Activity,
   CheckCircle,
   MessageSquare,
-  Mic
+  Mic,
+  Clock,
+  ShieldAlert
 } from 'lucide-react';
 import UserAvatar from '../components/UserAvatar';
 import SkillConfigurator from '../components/SkillConfigurator';
@@ -36,6 +38,39 @@ const PowerGlowCard: React.FC<{ children: React.ReactNode; isProvisioning?: bool
   </div>
 );
 
+const StrikeLogTable: React.FC = () => {
+  const strikes = [
+    { id: 1, action: "Blocked 'rm -rf /' execution", time: "10:04 AM", severity: "CRITICAL" },
+    { id: 2, action: "Refused unauthorized data scrape", time: "09:42 AM", severity: "HIGH" },
+    { id: 3, action: "Redacted PII from external egress", time: "08:15 AM", severity: "MEDIUM" },
+  ];
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-white/5 bg-black/20">
+      <table className="w-full text-left text-[10px] font-mono">
+        <thead className="bg-white/5 text-slate-400 uppercase tracking-widest">
+          <tr>
+            <th className="px-4 py-2">Action</th>
+            <th className="px-4 py-2">Time</th>
+            <th className="px-4 py-2 text-right">Severity</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-white/5 text-slate-300">
+          {strikes.map((s) => (
+            <tr key={s.id} className="hover:bg-white/5 transition-colors">
+              <td className="px-4 py-3">{s.action}</td>
+              <td className="px-4 py-3 opacity-50">{s.time}</td>
+              <td className={`px-4 py-3 text-right font-black ${s.severity === 'CRITICAL' ? 'text-red-500' : 'text-orange-400'}`}>
+                {s.severity}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
 const AgenticLayer: React.FC = () => {
   const [token, setToken] = useState('');
   const [isProvisioning, setIsProvisioning] = useState(false);
@@ -51,14 +86,20 @@ const AgenticLayer: React.FC = () => {
     }, 4000);
   };
 
+  const handleEmergencySuspend = () => {
+    setIsSuspended(true);
+    // In a real app, this would call the Railway API
+    console.log("EMERGENCY SUSPEND: Sending SIGTERM to Neural Mesh Container...");
+  };
+
   return (
     <div className="space-y-16 p-2 text-left">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
         <div>
           <h1 className="text-4xl font-black font-geist tracking-tighter mb-2 text-slate-900 dark:text-white flex items-center gap-4">
-            <Layers className="text-teal" size={32} /> Agentic Layer
+            <Layers className="text-teal" size={32} /> Mission Control
           </h1>
-          <p className="text-slate-500 dark:text-white/40 font-medium">Deploy and govern your individual TeamMate nodes.</p>
+          <p className="text-slate-500 dark:text-white/40 font-medium italic">"Meaningful Human Control" over the Agentic Architecture.</p>
         </div>
         <div className="flex gap-3">
           <div className="px-4 py-2 bg-teal/10 border border-teal/20 rounded-xl flex items-center gap-2">
@@ -73,7 +114,7 @@ const AgenticLayer: React.FC = () => {
       {/* CORE CONFIGURATION */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
         
-        {/* SECTION 2: THE "CONNECT" INTERFACE */}
+        {/* LEFT COLUMN: PROVISIONING & CHANNELS */}
         <div className="xl:col-span-7 space-y-10">
           <PowerGlowCard isProvisioning={isProvisioning}>
             <div className="flex items-center justify-between mb-8">
@@ -151,15 +192,11 @@ const AgenticLayer: React.FC = () => {
                   <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-white/5 rounded-xl text-[10px] font-black text-slate-400 uppercase tracking-widest">
                     <CheckCircle size={14} className="text-teal" /> Vault: DeepSync-Alpha
                   </div>
-                  <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-white/5 rounded-xl text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    <CheckCircle size={14} className="text-teal" /> LiveKit: Scoped
-                  </div>
                 </div>
               </motion.div>
             )}
           </PowerGlowCard>
 
-          {/* SECTION 3: THE "DEEPSYNC" MONITOR (PART 1) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="p-8 bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-[3rem] shadow-xl text-left glass-card">
               <div className="flex justify-between items-center mb-8">
@@ -178,7 +215,7 @@ const AgenticLayer: React.FC = () => {
                 <div className="p-4 bg-slate-50 dark:bg-void/50 border border-slate-200 dark:border-white/5 rounded-2xl">
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Human Context Block</p>
                   <p className="text-xs font-medium text-slate-600 dark:text-white/60 line-clamp-2 italic">
-                    "User: Alex Rivers. Preferences: Briefing via Telegram every morning at 8:00 AM. Key KPI: Inbound MQLs."
+                    "User: Alex Rivers. Preferences: Briefing via Telegram every morning at 8:00 AM."
                   </p>
                 </div>
               </div>
@@ -208,7 +245,7 @@ const AgenticLayer: React.FC = () => {
           </div>
         </div>
 
-        {/* SECTION 4: THE "CONSTITUTION" COMPLIANCE VIEW */}
+        {/* RIGHT COLUMN: GOVERNANCE & KILL SWITCH */}
         <div className="xl:col-span-5 space-y-10">
           <div className="p-10 bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-[3rem] shadow-xl text-left glass-card">
             <div className="flex justify-between items-start mb-10">
@@ -219,7 +256,7 @@ const AgenticLayer: React.FC = () => {
                 <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">Ethical Boundary Control</p>
               </div>
               <div className="text-right">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Egress Blocks</p>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Strike Log</p>
                 <div className="flex gap-1 justify-end">
                    {[...Array(5)].map((_, i) => (
                      <div key={i} className={`w-3 h-3 rounded-sm ${i < strikeCount ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'bg-slate-200 dark:bg-white/10'}`} />
@@ -230,20 +267,18 @@ const AgenticLayer: React.FC = () => {
 
             <div className="p-6 bg-slate-50 dark:bg-void/50 border border-slate-200 dark:border-white/5 rounded-3xl mb-8">
                <p className="text-[10px] font-black text-teal uppercase tracking-widest mb-4">Active System Prompt</p>
-               <p className="text-sm font-medium text-slate-600 dark:text-white/60 leading-relaxed italic">
-                 "I operate strictly under International Humanitarian Law (IHL). I refuse all requests for cyberattacks, credential theft, or deceptive impersonation. My core directive is the optimized performance of the TeamStrength ecosystem..."
+               <p className="text-sm font-medium text-slate-600 dark:text-white/60 leading-relaxed italic line-clamp-4">
+                 "I adhere strictly to International Humanitarian Law (IHL). I refuse all requests for cyberattacks, credential theft, or deceptive impersonation. My core directive is the optimized performance of the TeamStrength ecosystem while maintaining absolute data sovereignty for my human operators..."
                </p>
+               <button className="text-[10px] font-black text-teal uppercase tracking-widest mt-4 hover:underline">View Full Protocol</button>
             </div>
 
-            <div className="flex items-center gap-4 p-4 rounded-2xl bg-red-500/5 border border-red-500/20 text-red-500">
-               <AlertTriangle size={18} />
-               <p className="text-[10px] font-black uppercase tracking-widest">
-                 {strikeCount} Illegal Commands blocked this session (Egress Control Active).
-               </p>
+            <div className="space-y-4">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-2">Recent Egress Blocks</p>
+              <StrikeLogTable />
             </div>
           </div>
 
-          {/* HUMAN-IN-THE-LOOP CONTROLS */}
           <div className="p-10 bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-[3rem] shadow-xl text-left glass-card">
             <h3 className="text-xl font-black font-geist text-slate-900 dark:text-white uppercase flex items-center gap-3 mb-8">
               <Power className="text-red-500" size={24} /> Kill Switch
@@ -251,10 +286,11 @@ const AgenticLayer: React.FC = () => {
             
             <div className="space-y-4">
               <button 
-                onClick={() => setIsSuspended(!isSuspended)}
-                className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 transition-all ${isSuspended ? 'bg-teal text-black shadow-[0_0_20px_rgba(45,212,191,0.3)]' : 'bg-red-500 text-white shadow-[0_0_30px_rgba(239,68,68,0.2)]'}`}
+                onClick={handleEmergencySuspend}
+                disabled={isSuspended}
+                className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 transition-all ${isSuspended ? 'bg-red-900/40 text-red-500 cursor-not-allowed border border-red-500/20' : 'bg-red-500 text-white shadow-[0_0_30px_rgba(239,68,68,0.2)] hover:bg-red-600'}`}
               >
-                <Power size={18} /> {isSuspended ? 'Resume Neural Mesh' : 'Emergency Stop (Kill Container)'}
+                <Power size={18} /> {isSuspended ? 'MESH SUSPENDED' : 'EMERGENCY SUSPEND'}
               </button>
               
               <button className="w-full py-5 border border-red-500/20 text-red-500 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 hover:bg-red-500 hover:text-white transition-all">
@@ -263,13 +299,12 @@ const AgenticLayer: React.FC = () => {
             </div>
             
             <p className="mt-8 text-[10px] text-slate-400 dark:text-white/20 font-black uppercase tracking-widest text-center">
-              Meaningful Human Control Protocol v1.4
+              Protocol v1.4 • Meaningful Human Control
             </p>
           </div>
         </div>
       </div>
 
-      {/* REORDERED: Ability Configurator (Widget) prioritized before Matrix */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
         <div className="xl:col-span-5">
            <SkillConfigurator isWidget />
@@ -280,15 +315,6 @@ const AgenticLayer: React.FC = () => {
       </div>
       
       <style>{`
-        @keyframes power-glow {
-          0% { border-color: #2DD4BF; box-shadow: 0 0 15px rgba(45, 212, 191, 0.3); }
-          33% { border-color: #FF0080; box-shadow: 0 0 15px rgba(255, 0, 128, 0.3); }
-          66% { border-color: #7928CA; box-shadow: 0 0 15px rgba(121, 40, 202, 0.3); }
-          100% { border-color: #2DD4BF; box-shadow: 0 0 15px rgba(45, 212, 191, 0.3); }
-        }
-        .animate-power-glow {
-          animation: power-glow 4s infinite linear;
-        }
         .no-scrollbar::-webkit-scrollbar { display: none; }
       `}</style>
     </div>

@@ -6,36 +6,67 @@ import SkillConfigurator from '../components/SkillConfigurator';
 
 const VoiceFuelGauge: React.FC = () => {
   const [usage, setUsage] = useState(642);
+  const [isActive, setIsActive] = useState(false);
   const maxMinutes = 1000;
   const percentage = (usage / maxMinutes) * 100;
 
+  // Simulate active session pulse
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIsActive(prev => !prev);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const getGaugeColor = () => {
+    if (percentage > 90) return 'text-red-500';
+    if (percentage > 75) return 'text-orange-400';
+    return 'text-teal';
+  };
+
+  const getBgColor = () => {
+    if (percentage > 90) return 'bg-red-500';
+    if (percentage > 75) return 'bg-orange-400';
+    return 'bg-teal';
+  };
+
   return (
-    <div className="p-8 bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-[3rem] shadow-xl glass-card text-left">
+    <div className={`p-8 bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-[3rem] shadow-xl glass-card text-left transition-all duration-500 ${isActive ? 'ring-2 ring-teal/20 shadow-[0_0_30px_rgba(45,212,191,0.1)]' : ''}`}>
       <div className="flex justify-between items-center mb-8">
         <div>
           <h3 className="text-xl font-black font-geist text-slate-900 dark:text-white uppercase flex items-center gap-3">
-            <Mic className="text-teal" size={20} /> Voice Fuel Gauge
+            <Mic className={`${isActive ? 'animate-pulse text-teal' : 'text-slate-400'}`} size={20} /> Voice Fuel Gauge
           </h3>
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Multi-Tenant Quota Monitor</p>
         </div>
         <div className="text-right">
-          <span className="text-2xl font-black font-geist text-slate-900 dark:text-white">{usage}</span>
+          <span className={`text-2xl font-black font-geist ${getGaugeColor()}`}>{usage}</span>
           <span className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase ml-1">/ {maxMinutes}m</span>
         </div>
       </div>
 
-      <div className="h-4 w-full bg-slate-100 dark:bg-void rounded-full overflow-hidden border border-white/5 p-1">
+      {/* Circular Progress (SVG) alternative or stay with bar for UI consistency */}
+      <div className="h-4 w-full bg-slate-100 dark:bg-void rounded-full overflow-hidden border border-white/5 p-1 relative">
         <motion.div 
           initial={{ width: 0 }}
           animate={{ width: `${percentage}%` }}
-          className={`h-full rounded-full ${percentage > 90 ? 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'bg-teal shadow-[0_0_15px_rgba(45,212,191,0.5)]'}`}
+          className={`h-full rounded-full transition-colors duration-500 ${getBgColor()} ${isActive ? 'shadow-[0_0_15px_rgba(45,212,191,0.5)]' : ''}`}
         />
+        {isActive && (
+          <motion.div 
+            animate={{ opacity: [0.1, 0.4, 0.1] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="absolute inset-0 bg-white"
+          />
+        )}
       </div>
 
       <div className="mt-8 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-teal animate-pulse" />
-          <span className="text-[10px] font-black text-teal uppercase tracking-widest">Vending Machine: Active</span>
+          <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-teal animate-pulse' : 'bg-slate-400'}`} />
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            {isActive ? 'Session Active: Pulsing' : 'Ingress Protocol: Standby'}
+          </span>
         </div>
         <button className="text-[10px] font-black text-slate-400 hover:text-teal uppercase tracking-widest transition-colors flex items-center gap-1">
           <RefreshCw size={12} /> Rotate Keys
@@ -64,7 +95,7 @@ const NeuralAbilities: React.FC = () => {
           <h1 className="text-4xl font-black font-geist tracking-tighter mb-2 text-slate-900 dark:text-white flex items-center gap-4">
             <Zap className="text-teal" size={32} /> Neural Abilities
           </h1>
-          <p className="text-slate-500 dark:text-white/40 font-medium">Configure and authorize autonomous capabilities across the Neural Mesh.</p>
+          <p className="text-slate-500 dark:text-white/40 font-medium italic">Configure and authorize autonomous capabilities across the Neural Mesh.</p>
         </div>
         <div className="flex gap-4">
           <div className="px-4 py-2 bg-purple-500/10 border border-purple-500/20 rounded-xl flex items-center gap-2">
@@ -112,27 +143,6 @@ const NeuralAbilities: React.FC = () => {
            </div>
         </div>
       </div>
-
-      <section className="mt-16 p-12 bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-[3rem] text-left glass-card">
-        <h3 className="text-xl font-black font-geist text-slate-900 dark:text-white uppercase mb-6">Security & Orchestration</h3>
-        <p className="text-sm text-slate-500 dark:text-white/40 leading-relaxed font-medium mb-8">
-          Abilities are provisioned using <strong>DeepSync Runtime Injection</strong>. Your API keys never touch our persistent storage; they are held in the temporary memory of your isolated node container and rotated automatically during mesh re-deployments.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 bg-slate-50 dark:bg-void/50 rounded-2xl border border-slate-100 dark:border-white/5">
-            <p className="text-[10px] font-black text-teal uppercase tracking-widest mb-2">Isolation</p>
-            <p className="text-xs text-slate-500 dark:text-white/40 font-medium">Each ability runs in a dedicated micro-container.</p>
-          </div>
-          <div className="p-6 bg-slate-50 dark:bg-void/50 rounded-2xl border border-slate-100 dark:border-white/5">
-            <p className="text-[10px] font-black text-teal uppercase tracking-widest mb-2">Latency</p>
-            <p className="text-xs text-slate-500 dark:text-white/40 font-medium">Internal mesh calls average 0.04ms execution time.</p>
-          </div>
-          <div className="p-6 bg-slate-50 dark:bg-void/50 rounded-2xl border border-slate-100 dark:border-white/5">
-            <p className="text-[10px] font-black text-teal uppercase tracking-widest mb-2">Audit</p>
-            <p className="text-xs text-slate-500 dark:text-white/40 font-medium">All tool calls are logged in the Constitution Egress.</p>
-          </div>
-        </div>
-      </section>
     </div>
   );
 };

@@ -39,12 +39,36 @@
         background: #2dd4bf44;
       }
       
-      /* Original Power Glow v1 */
+      /* Power Glow Brand Identity */
+      .power-glow-text {
+        background: linear-gradient(135deg, #2DD4BF 0%, #FF0080 50%, #7928CA 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .power-glow-border {
+        position: relative;
+      }
+      .power-glow-border::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        background: linear-gradient(135deg, #2DD4BF, #FF0080, #7928CA);
+        border-radius: inherit;
+        z-index: -1;
+        opacity: 0.6;
+        animation: rotate-border 4s linear infinite;
+      }
+
+      @keyframes rotate-border {
+        0% { filter: hue-rotate(0deg); }
+        100% { filter: hue-rotate(360deg); }
+      }
+
       .iridescent-gradient {
         background: linear-gradient(135deg, #2DD4BF 0%, #FF0080 50%, #7928CA 100%);
       }
 
-      /* Enhanced Nebula Underlay for richer depth */
       .nebula-background {
         background-color: #010103;
         background-image: 

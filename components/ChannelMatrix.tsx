@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Send, 
@@ -14,7 +14,6 @@ import {
   ShieldCheck, 
   QrCode,
   Info,
-  // Added Layers to fix the undefined reference error
   Layers
 } from 'lucide-react';
 
@@ -85,18 +84,6 @@ const CHANNELS: Channel[] = [
       "Note: Session data is encrypted in your Session Vault."
     ],
     fields: [] // Handled via QR action
-  },
-  {
-    id: 'signal',
-    name: 'Signal Protocol',
-    icon: Zap,
-    color: 'text-[#3A76F0]',
-    guide: [
-      "Enter the phone number you wish to link (with country code).",
-      "You will receive an SMS verification code via our backend.",
-      "Warning: Do not use your primary personal number; Signal allows one device per number."
-    ],
-    fields: [{ name: 'phone', label: 'Phone Number', placeholder: '+1 555 000 0000', type: 'text' }]
   }
 ];
 
@@ -120,14 +107,14 @@ const ChannelCard: React.FC<{ channel: Channel; isActive: boolean }> = ({ channe
   };
 
   return (
-    <div className={`group rounded-[2rem] border transition-all duration-500 overflow-hidden ${
+    <div className={`group rounded-[2rem] border transition-all duration-500 overflow-hidden relative ${
       expanded ? 'border-teal/30 bg-white dark:bg-surface' : 'border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-void/50'
-    } ${enabled ? 'animate-power-glow-card' : ''}`}>
+    } ${enabled ? 'power-glow-border' : ''}`}>
       
       {/* Summary View */}
       <div 
         onClick={() => setExpanded(!expanded)}
-        className="p-8 cursor-pointer flex items-center justify-between"
+        className="p-8 cursor-pointer flex items-center justify-between relative z-10"
       >
         <div className="flex items-center gap-6">
           <div className={`w-14 h-14 rounded-2xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10 flex items-center justify-center ${channel.color} shadow-sm transition-transform group-hover:scale-110`}>
@@ -153,7 +140,7 @@ const ChannelCard: React.FC<{ channel: Channel; isActive: boolean }> = ({ channe
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="border-t border-slate-100 dark:border-white/5"
+            className="border-t border-slate-100 dark:border-white/5 relative z-10"
           >
             <div className="grid grid-cols-1 md:grid-cols-2">
               {/* Credentials Section */}
@@ -229,13 +216,6 @@ const ChannelCard: React.FC<{ channel: Channel; isActive: boolean }> = ({ channe
                       </p>
                     </div>
                   ))}
-                </div>
-                
-                <div className="mt-10 p-4 rounded-2xl bg-white dark:bg-surface border border-slate-200 dark:border-white/5 flex items-start gap-3">
-                  <Info size={14} className="text-teal shrink-0 mt-0.5" />
-                  <p className="text-[10px] text-slate-500 dark:text-white/30 font-medium">
-                    This ingress will be verified by the Neural Mesh. Ensure "Meaningful Human Control" is maintained by not sharing these credentials.
-                  </p>
                 </div>
               </div>
             </div>
