@@ -155,7 +155,7 @@ const EnterpriseProtocols: React.FC = () => {
                 </div>
                 <h3 className="text-2xl font-black font-geist text-slate-900 dark:text-white uppercase tracking-tight mb-3">System Audit Required</h3>
                 <p className="text-slate-500 dark:text-white/40 font-medium max-w-sm">
-                  Neural Mesh encryption shards are currently in a dormant state. Initiate a system audit to verify IHL compliance.
+                  Neural Mesh encryption shards are currently in a dormant state. Initiate a system audit to verify IHL compliance and reveal active protocols.
                 </p>
               </motion.div>
             )}
