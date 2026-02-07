@@ -1,3 +1,4 @@
+
 // Declare Deno to resolve "Cannot find name 'Deno'" errors in the TypeScript execution context
 declare const Deno: any;
 
@@ -23,21 +24,22 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // 3. Parse Request Body safely
-    const { user_id } = await req.json();
-    if (!user_id) {
-      throw new Error("Missing user_id in request body");
+    // 3. Parse Request Body safely - NOW EXPECTING node_id
+    const { user_id, node_id } = await req.json();
+    if (!user_id || !node_id) {
+      throw new Error("Missing user_id or node_id in request body");
     }
 
-    // 4. Quota Check (Voice Fuel)
+    // 4. Quota Check (Voice Fuel) for SPECIFIC NODE
     const { data: node, error: dbError } = await supabase
       .from("teammate_node")
       .select("*")
+      .eq("node_id", node_id)
       .eq("user_id", user_id)
       .single();
 
     if (dbError || !node) {
-      return new Response(JSON.stringify({ error: "Node not found" }), {
+      return new Response(JSON.stringify({ error: "Specific node not found in your fleet" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -50,7 +52,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Enforce 1000-minute limit [1]
+    // Enforce 1000-minute limit
     const voiceEnabled = (node.voice_fuel_minutes || 0) < 1000;
 
     // 5. Key Vending: Generate Scoped LiveKit Token
@@ -60,15 +62,16 @@ Deno.serve(async (req) => {
 
     // Only generate token if voice is enabled and keys exist
     if (voiceEnabled && livekitKey && livekitSecret) {
+      // Identity updated to node_id to prevent collisions with other user nodes
       const at = new AccessToken(livekitKey, livekitSecret, {
-        identity: `agent_${user_id}`,
+        identity: `agent_${node_id}`,
         ttl: 3600, // Token valid for 1 hour
       });
       
-      // Grant permissions for the user's specific room scope
+      // Grant permissions for the node's specific room scope
       at.addGrant({
         roomJoin: true,
-        room: `room_${user_id}`,
+        room: `room_${node_id}`,
         canPublish: true,
         canSubscribe: true,
       });
@@ -92,14 +95,14 @@ Deno.serve(async (req) => {
           serviceId: railwayServiceId,
           variables: {
             LETTA_AGENT_ID: node.neural_id || "new-auto-gen",
-            TELEGRAM_DM_POLICY: "pairing", // [2] Enforce strict ingress
+            TELEGRAM_DM_POLICY: "pairing", 
             LIVEKIT_API_KEY: livekitKey,
             LIVEKIT_API_SECRET: livekitSecret,
-            // If quota exceeded, disable voice URL to prevent connection [1]
             LIVEKIT_URL: voiceEnabled ? Deno.env.get("LIVEKIT_URL") : "DISABLED",
             SUPABASE_URL: Deno.env.get("SUPABASE_URL"),
-            SUPABASE_KEY: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"), // For session sync
+            SUPABASE_KEY: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"), 
             USER_ID: user_id,
+            NODE_ID: node_id, // Pass node identifier to container
           },
         },
       };
@@ -123,6 +126,7 @@ Deno.serve(async (req) => {
     // 7. Return Success
     return new Response(JSON.stringify({ 
       success: true, 
+      node_id: node_id,
       voice_enabled: voiceEnabled,
       voice_token: scopedVoiceToken 
     }), {

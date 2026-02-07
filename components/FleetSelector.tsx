@@ -21,7 +21,7 @@ const FleetSelector: React.FC = () => {
     { id: 'node_01', agent_callsign: 'Alpha', status: 'active', mesh_location: 'PHX-01' }
   ]);
   const [activeNode, setActiveNode] = useState(nodes[0]);
-  const [subscription] = useState({ max_nodes: 1, tier: 'scout_free' });
+  const [subscription] = useState({ max_nodes: 5, tier: 'command_pro' });
 
   const selectNode = (node: AgentNode) => {
     setActiveNode(node);
@@ -40,21 +40,40 @@ const FleetSelector: React.FC = () => {
     }
   };
 
-  const initiateDeployment = () => {
+  const initiateDeployment = async () => {
     setIsDeploying(true);
-    // Simulating dispatcher call
-    setTimeout(() => {
+    
+    // New Multi-Agent logic: Identify specific node attributes
+    const newNodeId = `node_0${nodes.length + 1}`;
+    const callsign = nodes.length === 1 ? 'Bravo' : 'Charlie';
+
+    console.log(`[FLEET] Dispatching launch signal for ${callsign} (ID: ${newNodeId})`);
+
+    // Actual Dispatcher API Call simulation
+    try {
+      // In production: await fetch('/functions/v1/dispatcher', { 
+      //   method: 'POST', 
+      //   body: JSON.stringify({ user_id: 'usr_current', node_id: newNodeId }) 
+      // });
+      
+      // Simulating network delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
       const newNode: AgentNode = {
-        id: `node_0${nodes.length + 1}`,
-        agent_callsign: nodes.length === 1 ? 'Bravo' : 'Charlie',
+        id: newNodeId,
+        agent_callsign: callsign,
         status: 'active',
         mesh_location: 'LDN-02'
       };
+      
       setNodes([...nodes, newNode]);
       setActiveNode(newNode);
       setIsDeploying(false);
-      console.log(`[FLEET] New container spawned: ${newNode.agent_callsign}`);
-    }, 2000);
+      console.log(`[FLEET] Neural Mesh confirmed deployment: ${newNode.agent_callsign}`);
+    } catch (err) {
+      console.error("[FLEET] Deployment collision or quota failure", err);
+      setIsDeploying(false);
+    }
   };
 
   return (

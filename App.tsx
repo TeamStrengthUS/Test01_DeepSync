@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './ThemeContext.tsx';
 import Landing from './pages/Landing.tsx';
 import Home from './pages/Home.tsx';
@@ -21,6 +21,34 @@ import Documentation from './pages/Documentation.tsx';
 import APIStatus from './pages/APIStatus.tsx';
 import Community from './pages/Community.tsx';
 
+// Mocked Auth State for demonstration - in production, replace with Supabase session check
+const useAuth = () => {
+  const [session, setSession] = useState<{ user: { email: string } } | null>({ user: { email: 'alex@teamstrength.us' } });
+  const isAdmin = session?.user?.email?.endsWith('@teamstrength.us') || false;
+  return { session, isAdmin, loading: false };
+};
+
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { session, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) return <div className="min-h-screen bg-void flex items-center justify-center text-teal font-black uppercase tracking-[0.4em]">Authorizing Mesh...</div>;
+  if (!session) return <Navigate to="/login" state={{ from: location }} replace />;
+  
+  return <>{children}</>;
+};
+
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { session, isAdmin, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) return <div className="min-h-screen bg-void flex items-center justify-center text-red-500 font-black uppercase tracking-[0.4em]">Verifying Clearances...</div>;
+  if (!session) return <Navigate to="/login" state={{ from: location }} replace />;
+  if (!isAdmin) return <Navigate to="/dashboard" replace />;
+  
+  return <>{children}</>;
+};
+
 const App: React.FC = () => {
   return (
     <ThemeProvider>
@@ -32,10 +60,24 @@ const App: React.FC = () => {
             <Route path="/product" element={<Product />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/dashboard/*" element={<Dashboard />} />
+            
+            {/* Secured Dashboard Area */}
+            <Route path="/dashboard/*" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            
             <Route path="/mission-control" element={<Navigate to="/dashboard/overview" replace />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/signature" element={<SignatureExport />} />
+            
+            {/* Secured Branding/Signature Export */}
+            <Route path="/signature" element={
+              <AdminRoute>
+                <SignatureExport />
+              </AdminRoute>
+            } />
+            
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/ecosystem" element={<AgentEcosystem />} />
