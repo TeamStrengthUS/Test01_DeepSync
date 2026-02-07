@@ -25,8 +25,10 @@ import {
   X,
   ShieldAlert as OverwatchIcon,
   LogOut,
-  UserPlus
+  UserPlus,
+  Activity
 } from 'lucide-react';
+// Fixed: Explicitly importing named exports from react-router-dom
 import { Link, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import Logo from '../components/Logo';
 import UserAvatar from '../components/UserAvatar';
@@ -36,6 +38,7 @@ import { useTheme } from '../App';
 import AgenticLayer from './AgenticLayer';
 import NeuralAbilities from './NeuralAbilities';
 import Overwatch from './Overwatch';
+import NeuralDashboard from './NeuralDashboard';
 
 const data = [
   { name: 'Jan', value: 4000 },
@@ -217,6 +220,7 @@ const SidebarContent: React.FC<{ onLinkClick?: () => void }> = ({ onLinkClick })
       <nav className="flex-1 space-y-2 text-left">
         <div className="text-[10px] text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] font-black mb-4 px-4">Workspace</div>
         <SidebarItem onClick={onLinkClick} icon={<Layers size={20} />} label="Agentic Layer" to="/dashboard" active={location.pathname === '/dashboard'} />
+        <SidebarItem onClick={onLinkClick} icon={<Activity size={20} />} label="Neural Dashboard" to="/dashboard/neural" active={location.pathname === '/dashboard/neural'} />
         <SidebarItem onClick={onLinkClick} icon={<Zap size={20} />} label="Skills Configurator" to="/dashboard/abilities" active={location.pathname === '/dashboard/abilities'} />
         <SidebarItem onClick={onLinkClick} icon={<LayoutDashboard size={20} />} label="Analytics Overview" to="/dashboard/overview" active={location.pathname === '/dashboard/overview'} />
         <SidebarItem onClick={onLinkClick} icon={<Workflow size={20} />} label="Neural Mesh HUD" to="/deepsync" />
@@ -425,6 +429,7 @@ const Dashboard: React.FC = () => {
         <div className="p-4 md:p-10 min-h-full">
           <Routes>
             <Route index element={<AgenticLayer />} />
+            <Route path="neural" element={<NeuralDashboard />} />
             <Route path="abilities" element={<NeuralAbilities />} />
             <Route path="overview" element={<DashboardOverview />} />
             <Route path="overwatch" element={<Overwatch />} />

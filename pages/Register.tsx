@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+// Fixed: Ensuring named exports are explicitly recognized
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, ChevronLeft, ShieldCheck } from 'lucide-react';
 

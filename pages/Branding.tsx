@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+// Fixed: Explicitly importing named exports from react-router-dom
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Logo from '../components/Logo';

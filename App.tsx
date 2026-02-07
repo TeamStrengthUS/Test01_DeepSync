@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -55,6 +55,7 @@ const App: React.FC = () => {
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {/* Fixed: Standard Router initialization */}
       <Router>
         <div className="min-h-screen transition-colors duration-300 bg-lightSurface dark:bg-void text-slate-900 dark:text-white">
           <Routes>

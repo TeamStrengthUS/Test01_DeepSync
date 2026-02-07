@@ -1,5 +1,6 @@
 
 import React from 'react';
+// Fixed: Ensuring named exports are explicitly recognized
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Logo from './Logo';

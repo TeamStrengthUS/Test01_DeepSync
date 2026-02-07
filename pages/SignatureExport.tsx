@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import Logo from '../components/Logo';
 import { ArrowLeft, Camera, Copy, Zap, ZapOff } from 'lucide-react';
+// Fixed: Explicitly importing named exports from react-router-dom
 import { Link } from 'react-router-dom';
 
 const SignatureExport: React.FC = () => {

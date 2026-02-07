@@ -12,6 +12,7 @@ import {
   CheckCircle2, 
   ArrowRight 
 } from 'lucide-react';
+// Fixed: Ensuring named exports are explicitly recognized
 import { Link } from 'react-router-dom';
 
 interface Skill {

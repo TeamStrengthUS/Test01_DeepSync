@@ -1,20 +1,32 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# TeamStrength | Premium Team Analytics
 
-# Run and deploy your AI Studio app
+A high-performance SaaS platform for team intelligence and agentic operations.
 
-This contains everything you need to run your app locally.
+## Security & Governance
 
-View your app in AI Studio: https://ai.studio/apps/drive/11UdosnNH7k5H_Ifn5tZNkkoy8V3g20o4
+### Meaningful Human Control (IHL Compliance)
+TeamStrength is architected to adhere to International Humanitarian Law (IHL) standards for "Meaningful Human Control." This ensures that every autonomous agent operates within a predictable framework and can be immediately deactivated by a human operator.
 
-## Run Locally
+### The "Three Strikes" Policy
+The **Project Overwatch** HUD monitors all agent behavior via immutable audit logs stored in the **DeepSync Vault**.
+- **Automated Suspension:** If an agent triggers 3 security strikes (violations of the Constitution) within a 24-hour window, the node is automatically suspended.
+- **Manual Override:** Admins at `teamstrength.com` have access to the **Neural Kill Switch** to terminate rogue nodes instantly.
 
-**Prerequisites:**  Node.js
+### Ingress Control (Pairing Mode)
+To prevent unauthorized access, all agent nodes utilize a "Pairing Mode" workflow:
+1. **Provisioning:** User provides a Bot Token.
+2. **Pairing:** The system generates a unique 6-digit code.
+3. **Verification:** The user must send this code to the bot to verify human ownership and authorize the Neural Mesh link.
+4. **DM Policy:** `TELEGRAM_DM_POLICY=pairing` ensures the bot only responds to paired administrators.
 
+### Egress Guard (The Constitution)
+All tools (bash, web search, etc.) pass through the **Egress Guard Hook**. This system prompt and logical filter blocks dangerous commands:
+- `rm -rf` / `mkfifo` / `nc`
+- Unauthorized network scanning (`nmap`)
+- Data exfiltration to non-whitelisted IPs
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+> [!WARNING]
+> This system enforces IHL compliance via immutable audit logs. Attempting to bypass the TeamStrength Constitution will result in immediate node suspension and administrative review.
+
+---
+© 2024 TEAMSTRENGTH.US
