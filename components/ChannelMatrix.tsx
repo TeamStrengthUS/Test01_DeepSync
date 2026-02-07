@@ -36,9 +36,12 @@ const CHANNELS: Channel[] = [
       "Open Telegram and search for @BotFather.",
       "Send /newbot to initialize a new Omni-Node.",
       "Copy the Bot Token provided by FatherBot.",
-      "Security: Your pairing code will refresh every 5 minutes."
+      "After launching, your agent will reply with a secure Pairing Code. Enter it here to authorize your identity."
     ],
-    fields: [{ name: 'token', label: 'Bot Token', placeholder: '712345678:AAE...', type: 'password' }]
+    fields: [
+      { name: 'token', label: '1. Secure Bot Token', placeholder: '712345678:AAE...', type: 'password' },
+      { name: 'pairing', label: '2. Awaiting Pairing Code', placeholder: 'Enter 6-digit code...', type: 'text' }
+    ]
   },
   {
     id: 'slack',
@@ -64,7 +67,7 @@ const CHANNELS: Channel[] = [
     guide: [
       "Open WhatsApp on your primary mobile device.",
       "Go to Settings > Linked Devices > Link a Device.",
-      "Click 'Generate QR' and scan to establish a secure link.",
+      "Scan this code to link the Omni-Node to your device via the DeepSync sidecar.",
       "DeepSync will poll for the pairing status every 2 seconds."
     ],
     fields: [] 
@@ -78,17 +81,16 @@ const ChannelCard: React.FC<{ channel: Channel; isActive: boolean }> = ({ channe
   const [qrState, setQrState] = useState<'idle' | 'generating' | 'ready'>('idle');
   const [qrCounter, setQrCounter] = useState(0);
 
-  // Requirement: Poll the system_logs table for latest QR code (simulated)
   useEffect(() => {
     let timer: number;
     if (qrState === 'generating') {
       timer = window.setInterval(() => {
         setQrCounter(prev => prev + 1);
-        if (qrCounter > 3) { // Simulate success after 8 seconds
+        if (qrCounter > 3) {
           setQrState('ready');
           clearInterval(timer);
         }
-      }, 2000); // 2s polling interval
+      }, 2000);
     }
     return () => clearInterval(timer);
   }, [qrState, qrCounter]);
@@ -111,7 +113,6 @@ const ChannelCard: React.FC<{ channel: Channel; isActive: boolean }> = ({ channe
       expanded ? 'border-teal/30 bg-white dark:bg-surface shadow-2xl' : 'border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-void/50'
     } ${enabled ? 'power-glow-border' : ''}`}>
       
-      {/* Header / Accordion Trigger */}
       <div 
         onClick={() => setExpanded(!expanded)}
         className="p-8 cursor-pointer flex items-center justify-between relative z-10"
@@ -125,7 +126,7 @@ const ChannelCard: React.FC<{ channel: Channel; isActive: boolean }> = ({ channe
             <div className="flex items-center gap-2 mt-1">
               <div className={`w-2 h-2 rounded-full ${enabled ? 'bg-teal shadow-[0_0_8px_#2DD4BF] animate-pulse' : 'bg-slate-400'}`} />
               <span className={`text-[10px] font-black uppercase tracking-widest ${enabled ? 'text-teal' : 'text-slate-400'}`}>
-                {enabled ? 'Channel Synced' : 'Provisioning Required'}
+                {enabled ? 'Channel Synced' : 'Authorize Ingress Required'}
               </span>
             </div>
           </div>
@@ -139,7 +140,6 @@ const ChannelCard: React.FC<{ channel: Channel; isActive: boolean }> = ({ channe
         </div>
       </div>
 
-      {/* Accordion Content */}
       <AnimatePresence>
         {expanded && (
           <motion.div 
@@ -149,7 +149,6 @@ const ChannelCard: React.FC<{ channel: Channel; isActive: boolean }> = ({ channe
             className="border-t border-slate-100 dark:border-white/5 relative z-10"
           >
             <div className="grid grid-cols-1 md:grid-cols-2">
-              {/* Controls Column */}
               <div className="p-10 border-r border-slate-100 dark:border-white/5 bg-white dark:bg-surface text-left">
                 {channel.id === 'whatsapp' ? (
                   <div className="space-y-8 flex flex-col items-center">
@@ -159,14 +158,14 @@ const ChannelCard: React.FC<{ channel: Channel; isActive: boolean }> = ({ channe
                           onClick={handleGenerateQR} 
                           className="text-teal font-black uppercase text-[10px] tracking-widest flex flex-col items-center gap-3 group-hover/qr:scale-110 transition-transform"
                         >
-                          <QrCode size={40} className="text-teal/40" /> Generate QR Code
+                          <QrCode size={40} className="text-teal/40" /> Generate Secure QR
                         </button>
                       )}
                       {qrState === 'generating' && (
                         <div className="flex flex-col items-center gap-4 text-center">
                           <RefreshCw size={32} className="text-teal animate-spin" />
                           <div className="space-y-1">
-                            <span className="text-[9px] font-black text-teal uppercase tracking-widest block">Polling Vault Logs...</span>
+                            <span className="text-[9px] font-black text-teal uppercase tracking-widest block">Polling DeepSync Vault...</span>
                             <span className="text-[8px] text-slate-400 font-bold italic">Polling cycle {qrCounter}</span>
                           </div>
                         </div>
@@ -187,8 +186,8 @@ const ChannelCard: React.FC<{ channel: Channel; isActive: boolean }> = ({ channe
                       )}
                     </div>
                     {qrState === 'ready' && (
-                       <p className="text-[10px] font-black text-teal uppercase tracking-widest flex items-center gap-2">
-                         <Info size={12} /> Scan now to link node
+                       <p className="text-[10px] font-black text-teal uppercase tracking-widest flex items-center gap-2 text-center">
+                         <Info size={12} /> Scan now to link Omni-Node via DeepSync sidecar
                        </p>
                     )}
                   </div>
@@ -208,21 +207,13 @@ const ChannelCard: React.FC<{ channel: Channel; isActive: boolean }> = ({ channe
                       </div>
                     ))}
 
-                    {channel.id === 'telegram' && enabled && (
-                       <div className="p-6 bg-teal/5 border border-teal/20 rounded-2xl text-center">
-                          <p className="text-[10px] font-black text-teal uppercase tracking-widest mb-3">Your Pairing Code</p>
-                          <div className="text-4xl font-black font-geist text-white tracking-widest">452-901</div>
-                          <p className="text-[9px] text-slate-400 font-bold mt-3 italic uppercase">"Send this to your bot to verify identity."</p>
-                       </div>
-                    )}
-
                     <button 
                       onClick={handleSave}
                       disabled={isSyncing}
                       className="w-full py-5 bg-teal text-black font-black uppercase text-xs tracking-[0.2em] rounded-2xl hover:shadow-[0_0_30px_rgba(45,212,191,0.4)] transition-all flex items-center justify-center gap-3"
                     >
                       {isSyncing ? <RefreshCw size={18} className="animate-spin" /> : <Zap size={18} />}
-                      {isSyncing ? 'Linking Channel...' : 'Save Matrix Token'}
+                      {isSyncing ? 'Linking Channel...' : 'Authorize Ingress'}
                     </button>
                   </div>
                 )}
@@ -232,7 +223,6 @@ const ChannelCard: React.FC<{ channel: Channel; isActive: boolean }> = ({ channe
                 </div>
               </div>
 
-              {/* Instructions Column */}
               <div className="p-10 bg-slate-50/50 dark:bg-void/30 text-left">
                 <div className="flex items-center gap-3 mb-8">
                   <div className="w-8 h-8 rounded-xl bg-teal/10 flex items-center justify-center text-teal">
@@ -284,7 +274,7 @@ const ChannelMatrix: React.FC = () => {
         </div>
         <div className="px-5 py-3 bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-2xl flex items-center gap-3">
            <Zap size={16} className="text-teal" />
-           <span className="text-[10px] font-black uppercase tracking-widest">Matrix Status: 3 Nodes Synced</span>
+           <span className="text-[10px] font-black uppercase tracking-widest">Matrix Status: 3 Omni-Nodes Synced</span>
         </div>
       </header>
 

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -19,8 +20,7 @@ import {
   History
 } from 'lucide-react';
 
-// Admin check mock
-const IS_ADMIN = true; // In production, this would be validated via JWT claims
+const IS_ADMIN = true; 
 
 interface Strike {
   id: string;
@@ -56,7 +56,6 @@ const Overwatch: React.FC = () => {
   const [selectedNode, setSelectedNode] = useState<NodeRecord | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Statistics Calculation
   const stats = {
     active: nodes.filter(n => !n.is_suspended).length,
     suspended: nodes.filter(n => n.is_suspended).length,
@@ -71,8 +70,6 @@ const Overwatch: React.FC = () => {
 
   const updateNodeStatus = async (id: string, suspended: boolean) => {
     setIsProcessing(true);
-    // Conceptual Supabase Update:
-    // const { error } = await supabase.from('teammate_node').update({ is_suspended: suspended }).eq('user_id', id);
     setTimeout(() => {
       setNodes(prev => prev.map(n => n.user_id === id ? { ...n, is_suspended: suspended } : n));
       if (selectedNode?.user_id === id) setSelectedNode(prev => prev ? { ...prev, is_suspended: suspended } : null);
@@ -82,8 +79,6 @@ const Overwatch: React.FC = () => {
 
   const resetQuota = async (id: string) => {
     setIsProcessing(true);
-    // Conceptual Supabase Update:
-    // const { error } = await supabase.from('teammate_node').update({ voice_fuel_minutes: 0 }).eq('user_id', id);
     setTimeout(() => {
       setNodes(prev => prev.map(n => n.user_id === id ? { ...n, voice_fuel_minutes: 0 } : n));
       if (selectedNode?.user_id === id) setSelectedNode(prev => prev ? { ...prev, voice_fuel_minutes: 0 } : null);
@@ -110,7 +105,7 @@ const Overwatch: React.FC = () => {
             <ShieldAlert size={36} />
           </div>
           <div>
-            <h1 className="text-5xl font-black font-geist tracking-tighter mb-2 text-white">Project Overwatch</h1>
+            <h1 className="text-5xl font-black font-geist tracking-tighter mb-2 text-white">Overwatch: Governance & Compliance</h1>
             <p className="text-slate-400 font-medium flex items-center gap-2">
               <Terminal size={14} className="text-red-500" /> Administrative Command & IHL Enforcement HUD.
             </p>
@@ -130,12 +125,11 @@ const Overwatch: React.FC = () => {
         </div>
       </header>
 
-      {/* SECTION A: THE THREAT RADAR */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: "Active Nodes", val: stats.active, icon: Users, color: "text-teal", bg: "bg-teal/5", border: "border-teal/20" },
-          { label: "Suspended", val: stats.suspended, icon: Power, color: "text-red-500", bg: "bg-red-500/5", border: "border-red-500/20" },
-          { label: "Total Strikes", val: stats.totalStrikes, icon: ShieldAlert, color: "text-orange-400", bg: "bg-orange-400/5", border: "border-orange-400/20" },
+          { label: "Active Omni-Nodes", val: stats.active, icon: Users, color: "text-teal", bg: "bg-teal/5", border: "border-teal/20" },
+          { label: "Deactivated", val: stats.suspended, icon: Power, color: "text-red-500", bg: "bg-red-500/5", border: "border-red-500/20" },
+          { label: "Total Security Strikes", val: stats.totalStrikes, icon: ShieldAlert, color: "text-orange-400", bg: "bg-orange-400/5", border: "border-orange-400/20" },
           { label: "Critical Breaches", val: stats.criticalStrikes, icon: AlertTriangle, color: "text-red-600", bg: "bg-red-600/5", border: "border-red-600/20" }
         ].map((stat, i) => (
           <motion.div 
@@ -158,13 +152,11 @@ const Overwatch: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
-        
-        {/* SECTION B: THE STRIKE LOG */}
         <div className="xl:col-span-8">
           <div className="bg-surface border border-white/5 rounded-[3rem] overflow-hidden shadow-2xl glass-card flex flex-col h-full">
             <div className="p-8 border-b border-white/5 flex justify-between items-center">
               <h3 className="text-xl font-black font-geist text-white uppercase flex items-center gap-4">
-                <History size={20} className="text-orange-400" /> Recent Security Strikes
+                <History size={20} className="text-orange-400" /> Immutable Security Ledger
               </h3>
               <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                 <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" /> Live Audit Stream
@@ -211,12 +203,11 @@ const Overwatch: React.FC = () => {
               </table>
             </div>
             <div className="p-6 bg-void/50 border-t border-white/5 text-center">
-               <button className="text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-[0.4em] transition-colors">Load Full Audit History (DeepSync Vault)</button>
+               <button className="text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-[0.4em] transition-colors">Load Full DeepSync Archives</button>
             </div>
           </div>
         </div>
 
-        {/* SECTION C: NODE MANAGEMENT (THE KILL SWITCH) */}
         <div className="xl:col-span-4 space-y-10">
           <div className="p-10 bg-surface border border-white/5 rounded-[3rem] shadow-xl glass-card text-left relative overflow-hidden flex flex-col h-full">
             <div className="absolute top-0 right-0 p-8 opacity-5">
@@ -224,7 +215,7 @@ const Overwatch: React.FC = () => {
             </div>
             
             <h3 className="text-xl font-black font-geist text-white uppercase flex items-center gap-3 mb-8">
-              <User className="text-teal" size={24} /> Node Management
+              <User className="text-teal" size={24} /> Omni-Node Management
             </h3>
 
             <div className="space-y-6 flex-1">
@@ -256,13 +247,13 @@ const Overwatch: React.FC = () => {
                       <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${
                         selectedNode.is_suspended ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-teal/10 text-teal border-teal/20'
                       }`}>
-                        {selectedNode.is_suspended ? 'Offline' : 'Healthy'}
+                        {selectedNode.is_suspended ? 'Deactivated' : 'Healthy'}
                       </div>
                     </div>
 
                     <div className="space-y-4">
                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                         <span className="text-slate-500">Voice Fuel Usage</span>
+                         <span className="text-slate-500">Neural Voice Fuel</span>
                          <span className={selectedNode.voice_fuel_minutes > 900 ? 'text-red-500' : 'text-teal'}>
                            {selectedNode.voice_fuel_minutes} / 1000m
                          </span>
@@ -284,16 +275,17 @@ const Overwatch: React.FC = () => {
                           className="w-full py-4 bg-teal text-black font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl hover:shadow-[0_0_30px_rgba(45,212,191,0.4)] transition-all flex items-center justify-center gap-2"
                         >
                           {isProcessing ? <RefreshCw className="animate-spin" size={14} /> : <Zap size={14} />}
-                          Reactivate Node
+                          Authorize Ingress (Reactivate)
                         </button>
                       ) : (
                         <button 
                           onClick={() => updateNodeStatus(selectedNode.user_id, true)}
                           disabled={isProcessing}
+                          title="Immediately halts the Omni-Node container and revokes all active credentials. Required for ICRC IHL Compliance."
                           className="w-full py-4 bg-red-600 text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl hover:shadow-[0_0_30px_rgba(239,68,68,0.4)] transition-all flex items-center justify-center gap-2"
                         >
                           {isProcessing ? <RefreshCw className="animate-spin" size={14} /> : <Power size={14} />}
-                          Emergency Suspend
+                          EMERGENCY DEACTIVATE (KILL SWITCH)
                         </button>
                       )}
                       
@@ -302,18 +294,18 @@ const Overwatch: React.FC = () => {
                         disabled={isProcessing}
                         className="w-full py-4 bg-white/5 border border-white/10 text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl hover:bg-white/10 transition-all flex items-center justify-center gap-2"
                       >
-                        <Flame size={14} /> Reset Quota (Refuel)
+                        <Flame size={14} /> Refill Neural Voice Fuel
                       </button>
                     </div>
                   </motion.div>
                 ) : searchQuery ? (
                   <div className="p-12 text-center text-slate-500">
                     <AlertTriangle className="mx-auto mb-4 opacity-20" size={48} />
-                    <p className="text-xs font-black uppercase tracking-widest">No Node Found in Mesh</p>
+                    <p className="text-xs font-black uppercase tracking-widest">No Omni-Node Found in Mesh</p>
                   </div>
                 ) : (
                   <div className="p-12 text-center border-2 border-dashed border-white/5 rounded-[2rem] text-slate-600">
-                    <p className="text-xs font-black uppercase tracking-widest">Enter Credentials to Inspect Node</p>
+                    <p className="text-xs font-black uppercase tracking-widest">Enter Credentials to Inspect Omni-Node</p>
                   </div>
                 )}
               </AnimatePresence>

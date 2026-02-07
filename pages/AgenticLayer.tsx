@@ -17,7 +17,8 @@ import {
   CheckCircle,
   Mic,
   ShieldAlert,
-  FileText
+  FileText,
+  Fuel
 } from 'lucide-react';
 import SkillConfigurator from '../components/SkillConfigurator';
 import ChannelMatrix from '../components/ChannelMatrix';
@@ -84,9 +85,9 @@ const AgenticLayer: React.FC = () => {
   };
 
   const handleEmergencySuspend = () => {
-    if (confirm("Execute EMERGENCY SUSPEND? This will terminate the Omni-Node container immediately via Railway API.")) {
+    if (confirm("Execute EMERGENCY DEACTIVATE (KILL SWITCH)? This will terminate the Omni-Node container immediately via Railway API.")) {
       setIsSuspended(true);
-      console.log("PROTOCOL: EMERGENCY_SUSPEND_TRIGGERED. Node offline.");
+      console.log("PROTOCOL: KILL_SWITCH_TRIGGERED. Node offline.");
     }
   };
 
@@ -102,19 +103,16 @@ const AgenticLayer: React.FC = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <div className="px-4 py-2 bg-teal/10 border border-teal/20 rounded-xl flex items-center gap-2">
+          <div className={`px-4 py-2 border rounded-xl flex items-center gap-2 ${isSuspended ? 'bg-red-500/10 border-red-500/20' : 'bg-teal/10 border-teal/20'}`}>
             <div className={`w-2 h-2 rounded-full ${isSuspended ? 'bg-red-500' : 'bg-teal animate-pulse'}`} />
-            <span className="text-[10px] font-black uppercase tracking-widest text-teal">
-              {isSuspended ? 'Mesh: Offline (Suspended)' : 'Neural Mesh: Operational'}
+            <span className={`text-[10px] font-black uppercase tracking-widest ${isSuspended ? 'text-red-500' : 'text-teal'}`}>
+              {isSuspended ? 'NODE DEACTIVATED' : 'OPERATION STAGE: ACTIVE'}
             </span>
           </div>
         </div>
       </header>
 
-      {/* CORE CONFIGURATION */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
-        
-        {/* LEFT COLUMN: PROVISIONING & CHANNELS */}
         <div className="xl:col-span-7 space-y-10">
           <PowerGlowCard isProvisioning={isProvisioning}>
             <div className="flex items-center justify-between mb-8">
@@ -123,14 +121,14 @@ const AgenticLayer: React.FC = () => {
                   <Bot size={24} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black font-geist text-slate-900 dark:text-white uppercase">Teammate Node Provisioning</h3>
-                  <p className="text-[10px] text-slate-400 font-black tracking-widest uppercase">DeepSync Ingress Control</p>
+                  <h3 className="text-xl font-black font-geist text-slate-900 dark:text-white uppercase">Omni-Node Provisioning</h3>
+                  <p className="text-[10px] text-slate-400 font-black tracking-widest uppercase">DeepSync Vault Ingress</p>
                 </div>
               </div>
               {provisioned && (
                 <div className="flex items-center gap-2 px-3 py-1 bg-teal/5 border border-teal/20 rounded-full">
                   <Mic size={14} className="text-teal" />
-                  <span className="text-[9px] font-black text-teal uppercase tracking-widest">Voice Link Active</span>
+                  <span className="text-[9px] font-black text-teal uppercase tracking-widest">Neural Voice Fuel Link Active</span>
                 </div>
               )}
             </div>
@@ -157,7 +155,7 @@ const AgenticLayer: React.FC = () => {
                   className="w-full py-5 bg-teal text-black font-black rounded-2xl text-lg hover:shadow-[0_0_40px_rgba(45,212,191,0.5)] transition-all disabled:opacity-50 relative overflow-hidden group"
                 >
                   <span className="relative z-10 flex items-center justify-center gap-3">
-                    {isProvisioning ? 'Deploying Container...' : 'Connect to DeepSync'}
+                    {isProvisioning ? 'Deploying Omni-Node...' : 'Authorize Ingress'}
                     <Zap size={20} className={isProvisioning ? 'animate-bounce' : ''} />
                   </span>
                   {isProvisioning && (
@@ -177,18 +175,18 @@ const AgenticLayer: React.FC = () => {
                 className="text-center py-8 space-y-8"
               >
                 <div className="p-8 bg-teal/5 border border-teal/20 rounded-[2rem] inline-block shadow-[0_0_30px_rgba(45,212,191,0.1)] relative">
-                   <div className="absolute -top-3 -right-3 px-3 py-1 bg-teal text-black text-[8px] font-black rounded-full shadow-lg animate-bounce">READY</div>
+                   <div className="absolute -top-3 -right-3 px-3 py-1 bg-teal text-black text-[8px] font-black rounded-full shadow-lg animate-bounce">SYNCED</div>
                    <p className="text-[10px] font-black text-teal uppercase tracking-widest mb-4">Pairing Code Generated</p>
                    <div className="text-6xl font-black font-geist tracking-[0.3em] text-slate-900 dark:text-white mb-4">
                      452-901
                    </div>
                    <p className="text-sm font-bold text-slate-500 dark:text-white/60 max-w-sm mx-auto">
-                     "Send this to your bot to verify identity."
+                     "Send this to your bot to authorize identity."
                    </p>
                 </div>
                 <div className="flex justify-center gap-4">
                   <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-white/5 rounded-xl text-[10px] font-black text-slate-400 uppercase tracking-widest border border-white/5">
-                    <CheckCircle size={14} className="text-teal" /> Node: Railway-Edge-01
+                    <CheckCircle size={14} className="text-teal" /> Omni-Node: Railway-Edge-01
                   </div>
                   <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-white/5 rounded-xl text-[10px] font-black text-slate-400 uppercase tracking-widest border border-white/5">
                     <CheckCircle size={14} className="text-teal" /> Vault: Sub-0ms Sync
@@ -199,12 +197,38 @@ const AgenticLayer: React.FC = () => {
           </PowerGlowCard>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Neural Voice Fuel Widget */}
+            <div className="p-8 bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-[3rem] shadow-xl text-left glass-card">
+              <div className="flex justify-between items-center mb-8">
+                <h3 className="text-lg font-black font-geist text-slate-900 dark:text-white uppercase flex items-center gap-3">
+                  <Fuel className="text-teal" size={20} /> Neural Voice Fuel
+                </h3>
+                <span className="text-[10px] font-black text-teal uppercase tracking-widest">LiveKit Protocol</span>
+              </div>
+              <div className="space-y-6">
+                 <div className="h-4 w-full bg-slate-100 dark:bg-void rounded-full overflow-hidden border border-white/5">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: '45%' }}
+                      className="h-full bg-teal shadow-[0_0_15px_#2DD4BF]"
+                    />
+                 </div>
+                 <div className="flex justify-between items-end">
+                    <div>
+                      <p className="text-2xl font-black font-geist text-slate-900 dark:text-white">450 <span className="text-xs text-slate-400 font-medium">/ 1000 min</span></p>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Hard Limit: 1000 min/mo. Resets on the 1st.</p>
+                    </div>
+                    <div className="px-3 py-1 bg-teal/10 rounded-lg text-teal text-[9px] font-black uppercase tracking-widest">OPTIMAL</div>
+                 </div>
+              </div>
+            </div>
+
             <div className="p-8 bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-[3rem] shadow-xl text-left glass-card">
               <div className="flex justify-between items-center mb-8">
                 <h3 className="text-lg font-black font-geist text-slate-900 dark:text-white uppercase flex items-center gap-3">
                   <Brain className="text-teal" size={20} /> Teammate IQ
                 </h3>
-                <span className="text-[10px] font-black text-teal uppercase tracking-widest">Active Shard</span>
+                <span className="text-[10px] font-black text-teal uppercase tracking-widest">DeepSync Vault Shard</span>
               </div>
               <div className="space-y-4">
                 <div className="p-4 bg-slate-50 dark:bg-void/50 border border-slate-200 dark:border-white/5 rounded-2xl">
@@ -213,47 +237,11 @@ const AgenticLayer: React.FC = () => {
                     "I am the high-performance analyst for TeamStrength. I prioritize sub-second latency and IHL compliance."
                   </p>
                 </div>
-                <div className="p-4 bg-slate-50 dark:bg-void/50 border border-slate-200 dark:border-white/5 rounded-2xl">
-                   <div className="flex justify-between items-center mb-2">
-                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Memory Context</p>
-                     <p className="text-[8px] font-black text-teal uppercase tracking-widest">Synced</p>
-                   </div>
-                   <div className="flex -space-x-2">
-                      {[1,2,3,4].map(i => (
-                        <div key={i} className="w-6 h-6 rounded-full border border-void bg-slate-800 flex items-center justify-center overflow-hidden">
-                          <img src={`https://picsum.photos/seed/user${i}/40/40`} className="w-full h-full" />
-                        </div>
-                      ))}
-                   </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-8 bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-[3rem] shadow-xl text-left flex flex-col glass-card">
-              <div className="flex justify-between items-center mb-8">
-                <h3 className="text-lg font-black font-geist text-slate-900 dark:text-white uppercase flex items-center gap-3">
-                  <Terminal className="text-teal" size={20} /> Runtime Logs
-                </h3>
-                <Activity size={16} className="text-teal animate-pulse" />
-              </div>
-              <div className="flex-1 space-y-4 max-h-[160px] overflow-y-auto no-scrollbar font-mono text-[10px]">
-                {[
-                  { time: '12:04:12', action: 'Injected Vault Secrets' },
-                  { time: '12:04:10', action: 'LiveKit Stream Established' },
-                  { time: '11:58:32', action: 'Constitution Check: PASSED' },
-                  { time: '11:55:01', action: 'Railway Container Restarted' }
-                ].map((log, i) => (
-                  <div key={i} className="flex gap-3 text-slate-400 dark:text-white/30 border-b border-slate-100 dark:border-white/5 pb-2">
-                    <span className="text-teal/40">[{log.time}]</span>
-                    <span>{log.action}</span>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
         </div>
 
-        {/* RIGHT COLUMN: GOVERNANCE & KILL SWITCH */}
         <div className="xl:col-span-5 space-y-10">
           <div className="p-10 bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-[3rem] shadow-xl text-left glass-card">
             <div className="flex justify-between items-start mb-10">
@@ -305,19 +293,15 @@ const AgenticLayer: React.FC = () => {
                 disabled={isSuspended}
                 className={`w-full py-6 rounded-2xl font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 transition-all ${isSuspended ? 'bg-red-900/40 text-red-500 cursor-not-allowed border border-red-500/20' : 'bg-red-500 text-white shadow-[0_0_30px_rgba(239,68,68,0.2)] hover:bg-red-600 hover:scale-[1.02]'}`}
               >
-                <Power size={20} /> {isSuspended ? 'NODE TERMINATED' : 'EMERGENCY SUSPEND'}
+                <Power size={20} /> {isSuspended ? 'NODE DEACTIVATED' : 'EMERGENCY DEACTIVATE (KILL SWITCH)'}
               </button>
               
               <div className="p-4 bg-red-500/5 border border-red-500/10 rounded-2xl">
                 <p className="text-[10px] text-red-500 font-black uppercase tracking-widest leading-relaxed">
-                  Warning: Triggering the kill switch immediately sets is_suspended=True in the Vault and terminates the Railway container.
+                  Warning: Triggering the kill switch immediately sets is_suspended=True in the Vault and terminates the Omni-Node container.
                 </p>
               </div>
             </div>
-            
-            <p className="mt-8 text-[10px] text-slate-400 dark:text-white/20 font-black uppercase tracking-widest text-center">
-              Protocol v3.1-Alpha • Human Control Verified
-            </p>
           </div>
         </div>
       </div>
