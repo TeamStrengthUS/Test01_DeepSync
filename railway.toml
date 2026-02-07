@@ -1,0 +1,26 @@
+[build]
+builder = "NIXPACKS"
+
+[services.agentic-layer]
+name = "agentic-layer"
+root = "backend/"
+build_command = "pip install -r requirements.txt && python manage.py collectstatic --noinput"
+start_command = "gunicorn core.wsgi:application"
+healthcheck_path = "/health/"
+# Required Environment Variables for Dashboard
+# These must be set via CLI or Railway Dashboard
+# SUPABASE_URL, SUPABASE_KEY, DJANGO_SECRET_KEY, DATABASE_URL
+
+[services.omni-node-template]
+name = "omni-node-template"
+root = "omni-node/"
+# Railway automatically detects the Dockerfile in the root folder
+# Note: This service is for templating. The Dispatcher clones this configuration.
+# We set this to 0 replicas manually in the Railway UI after the initial build to save credits.
+restart_policy_max_retries = 10
+restart_policy_on_failure = true
+
+[deploy]
+# Ensure the dashboard is permanently running
+num_replicas = 1
+sleep_on_idle = false
