@@ -40,6 +40,9 @@ import NeuralAbilities from './NeuralAbilities.tsx';
 import Overwatch from './Overwatch.tsx';
 import NeuralDashboard from './NeuralDashboard.tsx';
 import Branding from './Branding.tsx';
+import DeepVault from './DeepVault.tsx';
+import FleetSelector from '../components/FleetSelector.tsx';
+import NeuralLink from '../components/NeuralLink.tsx';
 
 const data = [
   { name: 'Jan', value: 4000 },
@@ -223,11 +226,11 @@ const SidebarContent: React.FC<{ onLinkClick?: () => void }> = ({ onLinkClick })
         <div className="text-[10px] text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] font-black mb-4 px-4">Workspace</div>
         <SidebarItem onClick={onLinkClick} icon={<Layers size={20} />} label="Agentic Layer" to="/dashboard" active={location.pathname === '/dashboard'} />
         <SidebarItem onClick={onLinkClick} icon={<Activity size={20} />} label="Neural Dashboard" to="/dashboard/neural" active={location.pathname === '/dashboard/neural'} />
+        <SidebarItem onClick={onLinkClick} icon={<Database size={20} />} label="DeepVault Explorer" to="/dashboard/vault" active={location.pathname === '/dashboard/vault'} />
         <SidebarItem onClick={onLinkClick} icon={<Zap size={20} />} label="Skills Configurator" to="/dashboard/abilities" active={location.pathname === '/dashboard/abilities'} />
         <SidebarItem onClick={onLinkClick} icon={<LayoutDashboard size={20} />} label="Analytics Overview" to="/dashboard/overview" active={location.pathname === '/dashboard/overview'} />
         <SidebarItem onClick={onLinkClick} icon={<Workflow size={20} />} label="Neural Mesh HUD" to="/deepsync" />
         <SidebarItem onClick={onLinkClick} icon={<Users size={20} />} label="Team IQ Node" to="/intelligence" />
-        <SidebarItem onClick={onLinkClick} icon={<Database size={20} />} label="DeepSync Vault" to="#" />
         <div className="pt-8 text-[10px] text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] font-black mb-4 px-4">Governance</div>
         <SidebarItem onClick={onLinkClick} icon={<OverwatchIcon size={20} />} label="Overwatch HUD" to="/dashboard/overwatch" active={location.pathname === '/dashboard/overwatch'} isRestricted />
         <SidebarItem onClick={onLinkClick} icon={<Palette size={20} />} label="Digital Persona" to="/dashboard/branding" active={location.pathname === '/dashboard/branding'} isRestricted />
@@ -349,6 +352,9 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2 md:gap-4 shrink-0">
+            {/* New Fleet Selector Integrated */}
+            <FleetSelector />
+
             <button 
               onClick={toggleTheme}
               className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl border border-slate-200 dark:border-white/5 bg-white dark:bg-surface text-slate-400 dark:text-white/30 hover:text-teal transition-all shadow-sm dark:shadow-none"
@@ -433,6 +439,7 @@ const Dashboard: React.FC = () => {
           <Routes>
             <Route index element={<AgenticLayer />} />
             <Route path="neural" element={<NeuralDashboard />} />
+            <Route path="vault" element={<DeepVault />} />
             <Route path="abilities" element={<NeuralAbilities />} />
             <Route path="overview" element={<DashboardOverview />} />
             <Route path="overwatch" element={<Overwatch />} />
@@ -440,6 +447,9 @@ const Dashboard: React.FC = () => {
           </Routes>
         </div>
       </main>
+
+      {/* Floating Neural Link Widget */}
+      <NeuralLink />
     </div>
   );
 };

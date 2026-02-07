@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './ThemeContext.tsx';
+import Landing from './pages/Landing.tsx';
 import Home from './pages/Home.tsx';
 import Login from './pages/Login.tsx';
 import Register from './pages/Register.tsx';
@@ -26,7 +27,8 @@ const App: React.FC = () => {
       <Router>
         <div className="min-h-screen transition-colors duration-300 bg-lightSurface dark:bg-void text-slate-900 dark:text-white">
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Landing />} />
+            <Route path="/overview" element={<Home />} />
             <Route path="/product" element={<Product />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -43,6 +45,7 @@ const App: React.FC = () => {
             <Route path="/docs" element={<Documentation />} />
             <Route path="/status" element={<APIStatus />} />
             <Route path="/community" element={<Community />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
       </Router>
