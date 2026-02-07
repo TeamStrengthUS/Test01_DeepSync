@@ -18,11 +18,13 @@ import {
   Mic,
   ShieldAlert,
   FileText,
-  Fuel
+  Fuel,
+  X
 } from 'lucide-react';
 import SkillConfigurator from '../components/SkillConfigurator.tsx';
 import ChannelMatrix from '../components/ChannelMatrix.tsx';
 import DeploymentLog from '../components/DeploymentLog.tsx';
+import SubscriptionMatrix from '../components/SubscriptionMatrix.tsx';
 
 const PowerGlowCard: React.FC<{ children: React.ReactNode; isProvisioning?: boolean; className?: string }> = ({ children, isProvisioning, className = "" }) => (
   <div className={`relative bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-[2.5rem] p-8 overflow-hidden transition-all duration-700 glass-card ${isProvisioning ? 'ring-2 ring-teal/50 shadow-[0_0_50px_rgba(45,212,191,0.2)]' : ''} ${className}`}>
@@ -77,8 +79,16 @@ const AgenticLayer: React.FC = () => {
   const [isSuspended, setIsSuspended] = useState(false);
   const [strikeCount, setStrikeCount] = useState(2);
   const [provisionError, setProvisionError] = useState<string | null>(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [activeNodeCount] = useState(1);
 
   const handleProvision = () => {
+    // Quota Enforcement: If trying to provision a second node on Scout tier
+    if (activeNodeCount >= 1) {
+      setShowUpgrade(true);
+      return;
+    }
+    
     setProvisionError(null);
     setIsProvisioning(true);
     // Simulation logic for potential quota error
@@ -102,7 +112,7 @@ const AgenticLayer: React.FC = () => {
   };
 
   return (
-    <div className="space-y-16 p-2 text-left">
+    <div className="space-y-16 p-2 text-left relative">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
         <div>
           <h1 className="text-4xl font-black font-geist tracking-tighter mb-2 text-slate-900 dark:text-white flex items-center gap-4">
@@ -127,7 +137,7 @@ const AgenticLayer: React.FC = () => {
           <PowerGlowCard isProvisioning={isProvisioning}>
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-4 text-left">
-                <div className="w-12 h-12 rounded-2xl bg-teal/10 flex items-center justify-center text-teal border border-teal/10 shadow-[0_0_15px_rgba(45,212,191,0.1)]">
+                <div className="w-12 h-12 rounded-2xl bg-teal/10 flex items-center justify-center text-teal border border-teal/20 shadow-[0_0_15px_rgba(45,212,191,0.1)]">
                   <Bot size={24} />
                 </div>
                 <div>
@@ -195,7 +205,7 @@ const AgenticLayer: React.FC = () => {
                     </span>
                   </button>
                   <p className="text-[9px] text-center text-slate-500 font-bold uppercase tracking-widest">
-                    Tip: Enter "FAIL" as token to test error state.
+                    Tip: Deploying a second node requires <span className="text-teal underline cursor-pointer" onClick={() => setShowUpgrade(true)}>Command Tier</span>.
                   </p>
                 </motion.div>
               ) : (
@@ -229,7 +239,6 @@ const AgenticLayer: React.FC = () => {
           </PowerGlowCard>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Neural Voice Fuel Widget */}
             <div className="p-8 bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-[3rem] shadow-xl text-left glass-card">
               <div className="flex justify-between items-center mb-8">
                 <h3 className="text-lg font-black font-geist text-slate-900 dark:text-white uppercase flex items-center gap-3">
@@ -248,9 +257,14 @@ const AgenticLayer: React.FC = () => {
                  <div className="flex justify-between items-end">
                     <div>
                       <p className="text-2xl font-black font-geist text-slate-900 dark:text-white">450 <span className="text-xs text-slate-400 font-medium">/ 1000 min</span></p>
-                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Hard Limit: 1000 min/mo. Resets on the 1st.</p>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Scout Tier Limit: 1000 min/mo.</p>
                     </div>
-                    <div className="px-3 py-1 bg-teal/10 rounded-lg text-teal text-[9px] font-black uppercase tracking-widest">OPTIMAL</div>
+                    <button 
+                      onClick={() => setShowUpgrade(true)}
+                      className="px-3 py-1 bg-teal/10 hover:bg-teal/20 transition-colors rounded-lg text-teal text-[9px] font-black uppercase tracking-widest border border-teal/20"
+                    >
+                      GET UNLIMITED
+                    </button>
                  </div>
               </div>
             </div>
@@ -343,6 +357,40 @@ const AgenticLayer: React.FC = () => {
            <ChannelMatrix />
         </div>
       </div>
+
+      {/* Upgrade Modal Overlay */}
+      <AnimatePresence>
+        {showUpgrade && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-void/90 backdrop-blur-2xl flex items-center justify-center p-6"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 30 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 30 }}
+              className="w-full max-w-5xl max-h-[90vh] overflow-y-auto custom-scrollbar bg-surface border border-white/10 rounded-[4rem] relative shadow-[0_0_100px_rgba(45,212,191,0.15)]"
+            >
+              <button 
+                onClick={() => setShowUpgrade(false)}
+                className="absolute top-10 right-10 p-4 bg-white/5 hover:bg-white/10 rounded-full text-white/40 hover:text-white transition-all z-20"
+              >
+                <X size={24} />
+              </button>
+              
+              <SubscriptionMatrix onUpgradeComplete={() => setShowUpgrade(false)} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(45, 212, 191, 0.1); border-radius: 10px; }
+      `}</style>
     </div>
   );
 };

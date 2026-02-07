@@ -75,6 +75,10 @@
       }
 
       .nebula-background {
+        background-color: #F8FAFC;
+      }
+
+      .dark .nebula-background {
         background-color: #010103;
         background-image: 
           radial-gradient(circle at 85% 15%, rgba(79, 70, 229, 0.15), transparent 60%),
@@ -83,8 +87,13 @@
       }
 
       .glass-card {
-        background: rgba(10, 10, 15, 0.7);
+        background: rgba(255, 255, 255, 0.7);
         backdrop-filter: blur(24px);
+        border: 1px solid rgba(0, 0, 0, 0.04);
+      }
+
+      .dark .glass-card {
+        background: rgba(10, 10, 15, 0.7);
         border: 1px solid rgba(255, 255, 255, 0.04);
       }
       
