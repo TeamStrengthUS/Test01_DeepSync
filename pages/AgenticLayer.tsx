@@ -80,18 +80,29 @@ const AgenticLayer: React.FC = () => {
   const [strikeCount, setStrikeCount] = useState(2);
   const [provisionError, setProvisionError] = useState<string | null>(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  
+  // Real-world sync: these would come from global state or context
   const [activeNodeCount] = useState(1);
+  const [maxNodes] = useState(1);
+  const [voiceFuel] = useState(1000);
 
   const handleProvision = () => {
-    // Quota Enforcement: If trying to provision a second node on Scout tier
-    if (activeNodeCount >= 1) {
+    // Quota Enforcement: Multi-node check
+    if (activeNodeCount >= maxNodes) {
+      setShowUpgrade(true);
+      return;
+    }
+
+    // Voice Fuel Check
+    if (voiceFuel >= 1000) {
       setShowUpgrade(true);
       return;
     }
     
     setProvisionError(null);
     setIsProvisioning(true);
-    // Simulation logic for potential quota error
+    
+    // Fail simulation
     if (token === 'FAIL') {
       setTimeout(() => {
         setProvisionError('QUOTA EXCEEDED. DEPLOYMENT ABORTED.');
@@ -250,18 +261,18 @@ const AgenticLayer: React.FC = () => {
                  <div className="h-4 w-full bg-slate-100 dark:bg-void rounded-full overflow-hidden border border-white/5">
                     <motion.div 
                       initial={{ width: 0 }}
-                      animate={{ width: '45%' }}
-                      className="h-full bg-teal shadow-[0_0_15px_#2DD4BF]"
+                      animate={{ width: '100%' }}
+                      className="h-full bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]"
                     />
                  </div>
                  <div className="flex justify-between items-end">
                     <div>
-                      <p className="text-2xl font-black font-geist text-slate-900 dark:text-white">450 <span className="text-xs text-slate-400 font-medium">/ 1000 min</span></p>
-                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Scout Tier Limit: 1000 min/mo.</p>
+                      <p className="text-2xl font-black font-geist text-red-500">1000 <span className="text-xs text-slate-400 font-medium">/ 1000 min</span></p>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Scout Tier Limit: EXCEEDED.</p>
                     </div>
                     <button 
                       onClick={() => setShowUpgrade(true)}
-                      className="px-3 py-1 bg-teal/10 hover:bg-teal/20 transition-colors rounded-lg text-teal text-[9px] font-black uppercase tracking-widest border border-teal/20"
+                      className="px-3 py-1 bg-teal text-black hover:bg-teal/80 transition-colors rounded-lg text-[9px] font-black uppercase tracking-widest border border-teal/20"
                     >
                       GET UNLIMITED
                     </button>
@@ -380,7 +391,10 @@ const AgenticLayer: React.FC = () => {
                 <X size={24} />
               </button>
               
-              <SubscriptionMatrix onUpgradeComplete={() => setShowUpgrade(false)} />
+              <SubscriptionMatrix onUpgradeComplete={() => {
+                console.log("STRIPE_PROMPT: Initiating Checkout...");
+                setShowUpgrade(false);
+              }} />
             </motion.div>
           </motion.div>
         )}

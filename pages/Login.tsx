@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 // Fixed: Ensuring named exports are explicitly recognized
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, ChevronLeft, Github } from 'lucide-react';
-import Logo from '../components/Logo';
+import Logo from '../components/Logo.tsx';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -129,7 +129,6 @@ const Login: React.FC = () => {
         </div>
       </div>
       
-      {/* Updated Footer links */}
       <footer className="py-8 border-t border-slate-200 dark:border-white/5 px-8 flex justify-between items-center text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest transition-colors duration-300">
         <span>© {new Date().getFullYear()} TEAMSTRENGTH.US</span>
         <div className="flex gap-8">

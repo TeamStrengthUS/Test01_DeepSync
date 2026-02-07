@@ -33,6 +33,7 @@ const App: React.FC = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard/*" element={<Dashboard />} />
+            <Route path="/mission-control" element={<Navigate to="/dashboard/overview" replace />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/signature" element={<SignatureExport />} />
             <Route path="/privacy" element={<Privacy />} />

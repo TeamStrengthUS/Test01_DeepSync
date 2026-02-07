@@ -3,7 +3,7 @@ import React from 'react';
 // Fixed: Ensuring named exports are explicitly recognized
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import Logo from './Logo';
+import Logo from './Logo.tsx';
 import { Github, Twitter, Linkedin, ArrowUpRight, Globe, Shield, MapPin } from 'lucide-react';
 
 const Footer: React.FC = () => {

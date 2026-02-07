@@ -122,6 +122,7 @@
               teal: {
                 DEFAULT: '#2DD4BF',
               },
+              matrix: '#00FF41'
             }
           }
         }
@@ -130,14 +131,17 @@
   <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@^19.2.4",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-    "react/": "https://esm.sh/react@^19.2.4/",
-    "react-router-dom": "https://esm.sh/react-router-dom@^7.13.0",
-    "framer-motion": "https://esm.sh/framer-motion@^12.33.0",
-    "recharts": "https://esm.sh/recharts@^3.7.0",
+    "react": "https://esm.sh/react@19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@19.2.4/",
+    "react/": "https://esm.sh/react@19.2.4/",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.13.0?deps=react@19.2.4,react-dom@19.2.4",
+    "framer-motion": "https://esm.sh/framer-motion@^12.33.0?deps=react@19.2.4,react-dom@19.2.4",
+    "recharts": "https://esm.sh/recharts@^3.7.0?deps=react@19.2.4,react-dom@19.2.4",
     "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
-    "@jest/globals": "https://esm.sh/@jest/globals@^30.2.0"
+    "@jest/globals": "https://esm.sh/@jest/globals@^30.2.0",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2",
+    "@supabase/auth-ui-react": "https://esm.sh/@supabase/auth-ui-react?deps=react@19.2.4,react-dom@19.2.4",
+    "@supabase/auth-ui-shared": "https://esm.sh/@supabase/auth-ui-shared?deps=react@19.2.4"
   }
 }
 </script>

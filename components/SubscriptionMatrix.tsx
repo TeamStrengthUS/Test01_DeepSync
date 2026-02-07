@@ -40,7 +40,7 @@ const PricingTier: React.FC<TierProps> = ({
     <div className="mb-10">
       <div className="flex items-baseline gap-1">
         <span className="text-5xl font-black font-geist text-white">{price}</span>
-        <span className="text-slate-500 font-bold text-sm uppercase tracking-widest">/shard</span>
+        <span className="text-slate-500 font-bold text-sm uppercase tracking-widest">/mo</span>
       </div>
     </div>
 
@@ -102,7 +102,7 @@ const SubscriptionMatrix: React.FC<{ onUpgradeComplete?: () => void }> = ({ onUp
         />
         <PricingTier 
           name="Command"
-          price="$199"
+          price="$29"
           description="High-Velocity Operations"
           icon={Zap}
           isPopular
