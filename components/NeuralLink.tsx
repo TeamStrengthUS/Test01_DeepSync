@@ -1,11 +1,26 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Send, Terminal, Zap, Activity, Fuel, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { 
+  MessageSquare, 
+  X, 
+  Send, 
+  Terminal, 
+  Zap, 
+  Activity, 
+  Fuel, 
+  AlertTriangle, 
+  ShieldCheck,
+  RefreshCw
+} from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
 import Logo from './Logo.tsx';
 
+// Placeholder for real Supabase initialization - using environment vars in production
+const supabase = createClient('https://placeholder.supabase.co', 'placeholder-key');
+
 interface Message {
-  id: number;
+  id: string | number;
   role: 'human' | 'agent';
   text: string;
   time: string;
@@ -15,46 +30,92 @@ const NeuralLink: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [voiceFuel, setVoiceFuel] = useState(1000); 
   const [messages, setMessages] = useState<Message[]>([
-    { id: 1, role: 'agent', text: 'INITIATING TACTICAL_LINK_V3.2. MESH_STATUS: ONLINE. AWAITING HUMAN_INGRESS.', time: '00:00' }
+    { id: 'init', role: 'agent', text: 'INITIATING TACTICAL_LINK_V3.2. MESH_STATUS: ONLINE. AWAITING HUMAN_INGRESS.', time: '00:00' }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // 1. Subscribe to Outbound Relay (Messages from Agent to Human)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const channel = supabase
+      .channel('web_chat_relay')
+      .on(
+        'postgres_changes',
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'web_chat_buffer',
+          filter: `direction=eq.outbound`
+        },
+        (payload) => {
+          const newMsg = payload.new;
+          setMessages(prev => [...prev, {
+            id: newMsg.id,
+            role: 'agent',
+            text: newMsg.content,
+            time: new Date(newMsg.created_at).toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit' })
+          }]);
+          setIsTyping(false);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isOpen]);
+
+  // Auto-scroll logic
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, isTyping]);
 
-  const handleSend = () => {
-    if (!input.trim() || voiceFuel <= 0) return;
+  const handleSend = async () => {
+    if (!input.trim() || voiceFuel <= 0 || isSending) return;
 
-    const userMsg: Message = {
-      id: Date.now(),
+    setIsSending(true);
+    const timestamp = new Date().toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit' });
+    
+    // Optimistic UI Update
+    const tempId = Date.now();
+    setMessages(prev => [...prev, {
+      id: tempId,
       role: 'human',
       text: input,
-      time: new Date().toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit' })
-    };
+      time: timestamp
+    }]);
 
-    setMessages(prev => [...prev, userMsg]);
-    setInput('');
-    setIsTyping(true);
-    
-    // Simulating heavy resource consumption for high-performance agent
-    setVoiceFuel(prev => Math.max(0, prev - 25));
+    try {
+      // 2. Insert into Inbound Relay (Human to Agent)
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error("Unauthenticated ingress");
 
-    // Mock Response from Agentic Dispatcher
-    setTimeout(() => {
-      const agentMsg: Message = {
-        id: Date.now() + 1,
-        role: 'agent',
-        text: `DEEP_SYNC_DISPATCH: COMMAND RECEIVED. QUERYING PHX-VAULT-SHARD. VALIDATING AGAINST CONSTITUTION_V3.1. OPERATION STATUS: EXECUTED.`,
-        time: new Date().toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages(prev => [...prev, agentMsg]);
-      setIsTyping(false);
-    }, 1200);
+      const { error } = await supabase
+        .from('web_chat_buffer')
+        .insert({
+          user_id: userData.user.id,
+          direction: 'inbound',
+          content: input,
+          // node_id is handled by server-side logic or context in a full implementation
+        });
+
+      if (error) throw error;
+
+      setInput('');
+      setIsTyping(true); // Waiting for agent response via subscription
+      setVoiceFuel(prev => Math.max(0, prev - 25)); // Fuel consumption simulation
+    } catch (err) {
+      console.error("[RELAY] Failed to push to buffer:", err);
+      // Optional: Add error message to thread
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -78,7 +139,7 @@ const NeuralLink: React.FC = () => {
                     <h3 className="text-sm font-black text-white uppercase tracking-tight">Tactical Hub</h3>
                     <div className="flex items-center gap-2">
                        <ShieldCheck size={10} className="text-teal" />
-                       <span className="text-[8px] font-black text-teal uppercase tracking-[0.2em]">Constitution Active</span>
+                       <span className="text-[8px] font-black text-teal uppercase tracking-[0.2em]">DB_RELAY ACTIVE</span>
                     </div>
                   </div>
                </div>
@@ -108,7 +169,7 @@ const NeuralLink: React.FC = () => {
                ))}
                {isTyping && (
                  <div className="flex flex-col items-start">
-                    <div className="text-[8px] font-black uppercase tracking-widest mb-2 text-white/20">Synthesizing_DeepSync_Vault...</div>
+                    <div className="text-[8px] font-black uppercase tracking-widest mb-2 text-white/20">AWAITING_RELAY_RESPONSE...</div>
                     <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex gap-2">
                        <motion.div animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 0.8, repeat: Infinity }} className="w-1.5 h-1.5 bg-teal rounded-full" />
                        <motion.div animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 0.8, repeat: Infinity, delay: 0.2 }} className="w-1.5 h-1.5 bg-teal rounded-full" />
@@ -132,7 +193,7 @@ const NeuralLink: React.FC = () => {
                   <input 
                     type="text" 
                     value={input}
-                    disabled={voiceFuel <= 0}
+                    disabled={voiceFuel <= 0 || isSending}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyUp={(e) => e.key === 'Enter' && handleSend()}
                     placeholder={voiceFuel > 0 ? "COMMAND_INGRESS..." : "ACCESS_DENIED: NO_FUEL"}
@@ -140,16 +201,16 @@ const NeuralLink: React.FC = () => {
                   />
                   <button 
                     onClick={handleSend}
-                    disabled={!input.trim() || voiceFuel <= 0}
+                    disabled={!input.trim() || voiceFuel <= 0 || isSending}
                     className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-teal text-black flex items-center justify-center hover:shadow-[0_0_30px_rgba(45,212,191,0.5)] transition-all disabled:opacity-10 shadow-lg"
                   >
-                    <Send size={16} />
+                    {isSending ? <RefreshCw className="animate-spin" size={16} /> : <Send size={16} />}
                   </button>
                </div>
                <div className="mt-6 flex items-center justify-center gap-8 text-[7px] font-black text-white/10 uppercase tracking-[0.4em]">
                   <span className="flex items-center gap-2"><Activity size={10} /> Sync_0.04ms</span>
                   <div className="w-1 h-1 rounded-full bg-white/10" />
-                  <span className="flex items-center gap-2"><Zap size={10} /> Mesh_Online</span>
+                  <span className="flex items-center gap-2"><Zap size={10} /> DB_Relay_Active</span>
                </div>
             </div>
           </motion.div>

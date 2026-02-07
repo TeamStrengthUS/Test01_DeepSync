@@ -24,13 +24,34 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // 3. Parse Request Body safely - NOW EXPECTING node_id
+    // 3. Parse Request Body safely
     const { user_id, node_id } = await req.json();
     if (!user_id || !node_id) {
       throw new Error("Missing user_id or node_id in request body");
     }
 
-    // 4. Quota Check (Voice Fuel) for SPECIFIC NODE
+    // 4. DYNAMIC TIER LOOKUP SEQUENCE
+    // Step A: Fetch User Subscription Tier
+    const { data: subData, error: subError } = await supabase
+      .from("subscriptions")
+      .select("tier")
+      .eq("user_id", user_id)
+      .single();
+
+    const currentTierId = (subError || !subData) ? 'scout_free' : subData.tier;
+
+    // Step B: Fetch Tier Resource Definitions
+    const { data: tierDef, error: tierError } = await supabase
+      .from("tier_definitions")
+      .select("voice_fuel_cap, node_limit")
+      .eq("tier_id", currentTierId)
+      .single();
+
+    if (tierError || !tierDef) {
+      throw new Error(`Failed to resolve tier definitions for: ${currentTierId}`);
+    }
+
+    // Step C: Fetch Node Usage from Neural Fleet
     const { data: node, error: dbError } = await supabase
       .from("teammate_node")
       .select("*")
@@ -52,23 +73,22 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Enforce 1000-minute limit
-    const voiceEnabled = (node.voice_fuel_minutes || 0) < 1000;
+    // 5. QUOTA ENFORCEMENT LOGIC (Dynamic)
+    const limit = tierDef.voice_fuel_cap;
+    // Convention: -1 is Unlimited. Otherwise, check current usage against cap.
+    const voiceEnabled = limit === -1 || (node.voice_fuel_minutes || 0) < limit;
 
-    // 5. Key Vending: Generate Scoped LiveKit Token
+    // 6. Key Vending: Generate Scoped LiveKit Token
     const livekitKey = Deno.env.get("LIVEKIT_API_KEY");
     const livekitSecret = Deno.env.get("LIVEKIT_API_SECRET");
     let scopedVoiceToken = "";
 
-    // Only generate token if voice is enabled and keys exist
     if (voiceEnabled && livekitKey && livekitSecret) {
-      // Identity updated to node_id to prevent collisions with other user nodes
       const at = new AccessToken(livekitKey, livekitSecret, {
         identity: `agent_${node_id}`,
-        ttl: 3600, // Token valid for 1 hour
+        ttl: 3600,
       });
       
-      // Grant permissions for the node's specific room scope
       at.addGrant({
         roomJoin: true,
         room: `room_${node_id}`,
@@ -78,13 +98,11 @@ Deno.serve(async (req) => {
       scopedVoiceToken = await at.toJwt();
     }
 
-    // 6. Deploy Neural Mesh Container via Railway GraphQL API
+    // 7. Deploy Neural Mesh Container via Railway GraphQL API
     const railwayToken = Deno.env.get("RAILWAY_API_TOKEN");
     const railwayServiceId = Deno.env.get("RAILWAY_SERVICE_ID");
 
-    if (!railwayToken || !railwayServiceId) {
-      console.warn("Railway config missing - skipping deployment trigger");
-    } else {
+    if (railwayToken && railwayServiceId) {
       const railwayMutation = `
         mutation deploymentCreate($input: DeploymentCreateInput!) {
           deploymentCreate(input: $input) { id status }
@@ -102,13 +120,13 @@ Deno.serve(async (req) => {
             SUPABASE_URL: Deno.env.get("SUPABASE_URL"),
             SUPABASE_KEY: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"), 
             USER_ID: user_id,
-            NODE_ID: node_id, // Pass node identifier to container
+            NODE_ID: node_id,
+            TIER_ID: currentTierId,
           },
         },
       };
 
-      // Call Railway API
-      const railwayResponse = await fetch("https://backboard.railway.app/graphql/v2", {
+      await fetch("https://backboard.railway.app/graphql/v2", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${railwayToken}`,
@@ -116,18 +134,15 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({ query: railwayMutation, variables }),
       });
-
-      if (!railwayResponse.ok) {
-        const errText = await railwayResponse.text();
-        throw new Error(`Railway API Error: ${errText}`);
-      }
     }
 
-    // 7. Return Success
+    // 8. Return Success with Context
     return new Response(JSON.stringify({ 
       success: true, 
       node_id: node_id,
+      tier: currentTierId,
       voice_enabled: voiceEnabled,
+      voice_fuel_limit: limit,
       voice_token: scopedVoiceToken 
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -15,7 +15,9 @@ import {
   Activity, 
   Cpu, 
   ChevronRight,
-  ShieldAlert
+  ShieldAlert,
+  Scale,
+  Target
 } from 'lucide-react';
 
 // Placeholder for real Supabase initialization
@@ -63,32 +65,38 @@ const Landing: React.FC = () => {
             transition={{ duration: 0.8 }}
             className="text-left"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-teal/20 bg-teal/5 text-teal text-[10px] font-black tracking-widest uppercase mb-8 backdrop-blur-sm">
-              <ShieldCheck size={12} /> Compliant with 2026 ICRC Standards
+            <div className="inline-flex flex-col gap-2 mb-8">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-teal/20 bg-teal/5 text-teal text-[10px] font-black tracking-widest uppercase backdrop-blur-sm w-fit">
+                <ShieldCheck size={12} /> Compliant with 2026 ICRC Standards
+              </div>
+              <div className="text-[9px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.3em] px-4">
+                Built on the Letta Framework • Compliant with UN Resolution 79/239
+              </div>
             </div>
-            <h1 className="text-6xl md:text-8xl font-black font-geist tracking-tighter leading-[0.9] mb-8 text-slate-900 dark:text-white uppercase">
-              TeamStrength: <br />
-              <span className="iridescent-gradient bg-clip-text text-transparent italic leading-[1.1]">Deploy AI-DSS.</span>
+
+            <h1 className="text-5xl md:text-7xl font-black font-geist tracking-tighter leading-[0.9] mb-8 text-slate-900 dark:text-white uppercase">
+              Deploy Military-Grade <br />
+              <span className="iridescent-gradient bg-clip-text text-transparent italic leading-[1.1]">AI Decision-Support Systems.</span>
             </h1>
             <p className="text-xl md:text-2xl text-slate-500 dark:text-white/40 leading-relaxed mb-16 max-w-xl font-medium">
-              High-performance autonomous decision-support systems architected for absolute state precision and verified Meaningful Human Control.
+              Achieve Information Superiority with ICRC-Compliant Neural Mesh Technology. Architected for absolute state precision and verified Meaningful Human Control.
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <ValueCard 
-                icon={Database} 
-                title="DeepSync" 
-                desc="Persistent memory shards synchronized across global mesh clusters." 
+                icon={Scale} 
+                title="Supervised Execution" 
+                desc="Task-specific neural processing bound by human-validated decision gates and operational limits." 
               />
               <ValueCard 
-                icon={Cpu} 
-                title="Omni-Node" 
-                desc="Isolated agentic runtime with hardware-abstracted kill switches." 
+                icon={Target} 
+                title="Precision Analytics" 
+                desc="High-fidelity telemetry synthesis providing actionable intelligence superiority for decision-makers." 
               />
               <ValueCard 
                 icon={ShieldAlert} 
-                title="Overwatch" 
-                desc="IHL-certified governance and immutable security audit trails." 
+                title="IHL Overwatch" 
+                desc="Hardware-abstracted governance and immutable security audit trails for total legal accountability." 
               />
             </div>
           </motion.div>
@@ -103,7 +111,7 @@ const Landing: React.FC = () => {
             <div className="bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-[3rem] p-10 shadow-2xl relative z-10 animate-power-glow-card">
                <div className="mb-10 text-center">
                   <Logo size="sm" className="justify-center mb-6" />
-                  <h2 className="text-2xl font-black font-geist tracking-tight mb-2 uppercase text-slate-900 dark:text-white">Core Activation</h2>
+                  <h2 className="text-2xl font-black font-geist tracking-tight mb-2 uppercase text-slate-900 dark:text-white">System Activation</h2>
                   <p className="text-xs text-slate-400 dark:text-white/40 font-medium uppercase tracking-[0.3em]">Initialize Mission Control</p>
                </div>
                
@@ -118,7 +126,7 @@ const Landing: React.FC = () => {
                </div>
 
                <p className="mt-8 text-center text-[9px] font-black text-slate-300 dark:text-white/10 uppercase tracking-[0.4em] leading-relaxed">
-                  Subject to <span className="text-teal">Constitutional Governance</span> <br /> Audit Log: ACTIVE
+                  Subject to <span className="text-teal">Constitutional Governance</span> <br /> Audit Log: ACTIVE (AI-DSS PROTOCOL)
                </p>
             </div>
           </motion.div>
@@ -129,7 +137,7 @@ const Landing: React.FC = () => {
         <div className="flex items-center gap-4 text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest">
            <Lock size={12} className="text-teal" /> SOC2 TYPE II CERTIFIED
            <div className="w-1 h-1 rounded-full bg-slate-200 dark:bg-white/10" />
-           <ShieldCheck size={12} className="text-teal" /> IHL 2026 COMPLIANT
+           <ShieldCheck size={12} className="text-teal" /> IHL 2026 COMPLIANT (AI-DSS SAFE HARBOR)
         </div>
         <p className="text-[10px] font-black text-slate-300 dark:text-white/10 uppercase tracking-[0.4em]">
           © 2026 TEAMSTRENGTH.US • NEURAL MESH V3.2
