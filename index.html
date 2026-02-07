@@ -1,0 +1,109 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TeamStrength | Premium Team Analytics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Sans:wght@100;400;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --transition-speed: 0.3s;
+      }
+      body {
+        transition: background-color var(--transition-speed), color var(--transition-speed);
+        font-family: 'Inter', sans-serif;
+        margin: 0;
+        overflow-x: hidden;
+      }
+      .font-geist {
+        font-family: 'Geist Sans', sans-serif;
+      }
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #2dd4bf22;
+        border-radius: 10px;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: #2dd4bf11;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #2dd4bf44;
+      }
+      
+      /* Original Power Glow v1 */
+      .iridescent-gradient {
+        background: linear-gradient(135deg, #2DD4BF 0%, #FF0080 50%, #7928CA 100%);
+      }
+
+      /* Enhanced Nebula Underlay for richer depth */
+      .nebula-background {
+        background-color: #010103;
+        background-image: 
+          radial-gradient(circle at 85% 15%, rgba(79, 70, 229, 0.15), transparent 60%),
+          radial-gradient(circle at 15% 85%, rgba(124, 58, 237, 0.12), transparent 60%),
+          radial-gradient(circle at 50% 50%, rgba(45, 212, 191, 0.03), transparent 70%);
+      }
+
+      .glass-card {
+        background: rgba(10, 10, 15, 0.7);
+        backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+      }
+      
+      @keyframes power-glow-pulse {
+        0% { border-color: rgba(45, 212, 191, 0.2); box-shadow: 0 0 5px rgba(45, 212, 191, 0.1); }
+        50% { border-color: rgba(255, 0, 128, 0.3); box-shadow: 0 0 15px rgba(255, 0, 128, 0.1); }
+        100% { border-color: rgba(45, 212, 191, 0.2); box-shadow: 0 0 5px rgba(45, 212, 191, 0.1); }
+      }
+
+      .animate-power-glow-card {
+        animation: power-glow-pulse 6s infinite linear;
+        border-width: 1px;
+      }
+
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              void: '#010103',
+              surface: '#08080E',
+              lightSurface: '#F8FAFC',
+              teal: {
+                DEFAULT: '#2DD4BF',
+              },
+            }
+          }
+        }
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.13.0",
+    "framer-motion": "https://esm.sh/framer-motion@^12.33.0",
+    "recharts": "https://esm.sh/recharts@^3.7.0",
+    "lucide-react": "https://esm.sh/lucide-react@^0.563.0"
+  }
+}
+</script>
+</head>
+  <body class="dark bg-lightSurface text-slate-900 dark:bg-void dark:text-white nebula-background min-h-screen">
+    <div id="root"></div>
+  </body>
+</html>
