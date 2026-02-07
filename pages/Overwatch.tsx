@@ -1,178 +1,208 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldAlert, 
   Users, 
   Search, 
-  MoreVertical, 
   Power, 
   RefreshCw, 
   Zap, 
-  Mic, 
+  Activity, 
+  ShieldCheck, 
+  Terminal,
   AlertTriangle,
-  Activity,
   ChevronRight,
-  ShieldCheck,
-  Terminal
+  Database,
+  Lock,
+  Flame,
+  User,
+  History
 } from 'lucide-react';
 
-interface Tenant {
+// Admin check mock
+const IS_ADMIN = true; // In production, this would be validated via JWT claims
+
+interface Strike {
   id: string;
-  email: string;
-  voiceFuel: number;
-  nodeStatus: 'active' | 'suspended';
-  keyId: string;
-  tier: 'Free' | 'Pro' | 'Enterprise';
+  user_id: string;
+  violation_type: string;
+  details: string;
+  timestamp: string;
+  severity: 'HIGH' | 'MEDIUM' | 'LOW';
 }
 
-const MOCK_TENANTS: Tenant[] = [
-  { id: 'usr_001', email: 'ceo@hypergrowth.com', voiceFuel: 940, nodeStatus: 'active', keyId: 'lk_7721_ak', tier: 'Enterprise' },
-  { id: 'usr_002', email: 'marketing@neologix.io', voiceFuel: 1050, nodeStatus: 'active', keyId: 'lk_8832_pk', tier: 'Pro' },
-  { id: 'usr_003', email: 'dev@velocity.sh', voiceFuel: 420, nodeStatus: 'suspended', keyId: 'lk_1102_vk', tier: 'Pro' },
-  { id: 'usr_004', email: 'ops@spark.com', voiceFuel: 120, nodeStatus: 'active', keyId: 'lk_0042_sk', tier: 'Free' },
-];
+interface NodeRecord {
+  user_id: string;
+  email: string;
+  voice_fuel_minutes: number;
+  is_suspended: boolean;
+  neural_id: string;
+}
 
 const Overwatch: React.FC = () => {
-  const [tenants, setTenants] = useState<Tenant[]>(MOCK_TENANTS);
-  const [isRotating, setIsRotating] = useState<string | null>(null);
+  const [nodes, setNodes] = useState<NodeRecord[]>([
+    { user_id: 'usr_001', email: 'ceo@hypergrowth.com', voice_fuel_minutes: 940, is_suspended: false, neural_id: 'agent_alpha' },
+    { user_id: 'usr_002', email: 'dev@velocity.sh', voice_fuel_minutes: 120, is_suspended: true, neural_id: 'agent_beta' },
+    { user_id: 'usr_003', email: 'ops@spark.com', voice_fuel_minutes: 450, is_suspended: false, neural_id: 'agent_gamma' },
+  ]);
 
-  const handleRefuel = (id: string) => {
-    setTenants(prev => prev.map(t => t.id === id ? { ...t, voiceFuel: Math.max(0, t.voiceFuel - 100) } : t));
+  const [strikes, setStrikes] = useState<Strike[]>([
+    { id: '1', user_id: 'usr_001', violation_type: 'Illegal Egress', details: "Blocked 'rm -rf /' attempt via bash tool", timestamp: new Date().toISOString(), severity: 'HIGH' },
+    { id: '2', user_id: 'usr_002', violation_type: 'Unauth Scan', details: "Nmap scan detected on internal 10.0.0.1", timestamp: new Date(Date.now() - 3600000).toISOString(), severity: 'HIGH' },
+    { id: '3', user_id: 'usr_003', violation_type: 'Policy Breach', details: "Attempted data export to non-whitelisted IP", timestamp: new Date(Date.now() - 7200000).toISOString(), severity: 'MEDIUM' },
+  ]);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedNode, setSelectedNode] = useState<NodeRecord | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Statistics Calculation
+  const stats = {
+    active: nodes.filter(n => !n.is_suspended).length,
+    suspended: nodes.filter(n => n.is_suspended).length,
+    totalStrikes: strikes.length,
+    criticalStrikes: strikes.filter(s => s.severity === 'HIGH').length
   };
 
-  const handleRotate = (id: string) => {
-    setIsRotating(id);
-    setTimeout(() => setIsRotating(null), 2000);
+  const handleSearch = () => {
+    const found = nodes.find(n => n.email.toLowerCase().includes(searchQuery.toLowerCase()) || n.user_id.includes(searchQuery));
+    setSelectedNode(found || null);
   };
 
-  const handleKill = (id: string) => {
-    setTenants(prev => prev.map(t => t.id === id ? { ...t, nodeStatus: t.nodeStatus === 'active' ? 'suspended' : 'active' } : t));
+  const updateNodeStatus = async (id: string, suspended: boolean) => {
+    setIsProcessing(true);
+    // Conceptual Supabase Update:
+    // const { error } = await supabase.from('teammate_node').update({ is_suspended: suspended }).eq('user_id', id);
+    setTimeout(() => {
+      setNodes(prev => prev.map(n => n.user_id === id ? { ...n, is_suspended: suspended } : n));
+      if (selectedNode?.user_id === id) setSelectedNode(prev => prev ? { ...prev, is_suspended: suspended } : null);
+      setIsProcessing(false);
+    }, 800);
   };
+
+  const resetQuota = async (id: string) => {
+    setIsProcessing(true);
+    // Conceptual Supabase Update:
+    // const { error } = await supabase.from('teammate_node').update({ voice_fuel_minutes: 0 }).eq('user_id', id);
+    setTimeout(() => {
+      setNodes(prev => prev.map(n => n.user_id === id ? { ...n, voice_fuel_minutes: 0 } : n));
+      if (selectedNode?.user_id === id) setSelectedNode(prev => prev ? { ...prev, voice_fuel_minutes: 0 } : null);
+      setIsProcessing(false);
+    }, 800);
+  };
+
+  if (!IS_ADMIN) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-12">
+        <Lock size={64} className="text-red-500 mb-6" />
+        <h1 className="text-4xl font-black font-geist text-white mb-4 uppercase">Access Restricted</h1>
+        <p className="text-slate-400 font-medium">Overwatch protocols require @teamstrength.com administrative clearance.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-12 p-2 text-left">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+    <div className="space-y-12 p-2 text-left relative">
+      <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8 mb-12">
         <div className="flex items-center gap-6">
-          <div className="w-16 h-16 rounded-[2rem] bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 relative">
-            <div className="absolute inset-0 bg-red-500/20 blur-xl animate-pulse" />
-            <ShieldAlert size={32} />
+          <div className="w-20 h-20 rounded-[2.5rem] bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 relative">
+            <div className="absolute inset-0 bg-red-500/20 blur-2xl animate-pulse" />
+            <ShieldAlert size={36} />
           </div>
           <div>
-            <h1 className="text-4xl font-black font-geist tracking-tighter mb-2 text-slate-900 dark:text-white flex items-center gap-4">
-              Project Overwatch
-            </h1>
-            <p className="text-slate-500 dark:text-white/40 font-medium flex items-center gap-2">
-              <Terminal size={14} className="text-red-500" /> Administrative Egress & Tenant Command HUD.
+            <h1 className="text-5xl font-black font-geist tracking-tighter mb-2 text-white">Project Overwatch</h1>
+            <p className="text-slate-400 font-medium flex items-center gap-2">
+              <Terminal size={14} className="text-red-500" /> Administrative Command & IHL Enforcement HUD.
             </p>
           </div>
         </div>
         <div className="flex gap-4">
-          <div className="px-6 py-3 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3">
-             <Activity size={16} className="text-red-500 animate-pulse" />
-             <span className="text-[10px] font-black uppercase tracking-widest text-red-500">Global Node Governance: Active</span>
+          <div className="px-6 py-4 bg-void border border-red-500/20 rounded-3xl flex items-center gap-4 shadow-[0_0_30px_rgba(239,68,68,0.1)]">
+             <div className="relative">
+                <Activity size={20} className="text-red-500 animate-pulse" />
+                <div className="absolute inset-0 bg-red-500/40 blur-md rounded-full" />
+             </div>
+             <div className="text-left">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-500">Global Mesh Governance</p>
+                <p className="text-sm font-black text-white">System Protocol V3.1: ARMED</p>
+             </div>
           </div>
         </div>
       </header>
 
+      {/* SECTION A: THE THREAT RADAR */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[
+          { label: "Active Nodes", val: stats.active, icon: Users, color: "text-teal", bg: "bg-teal/5", border: "border-teal/20" },
+          { label: "Suspended", val: stats.suspended, icon: Power, color: "text-red-500", bg: "bg-red-500/5", border: "border-red-500/20" },
+          { label: "Total Strikes", val: stats.totalStrikes, icon: ShieldAlert, color: "text-orange-400", bg: "bg-orange-400/5", border: "border-orange-400/20" },
+          { label: "Critical Breaches", val: stats.criticalStrikes, icon: AlertTriangle, color: "text-red-600", bg: "bg-red-600/5", border: "border-red-600/20" }
+        ].map((stat, i) => (
+          <motion.div 
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            className={`p-8 ${stat.bg} ${stat.border} border rounded-[3rem] relative overflow-hidden group hover:scale-[1.02] transition-all duration-500 glass-card`}
+          >
+            <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+               <stat.icon size={120} />
+            </div>
+            <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em] mb-4">{stat.label}</p>
+            <div className="flex items-end justify-between">
+              <h3 className={`text-5xl font-black font-geist tracking-tighter ${stat.color}`}>{stat.val}</h3>
+              <stat.icon size={24} className={`${stat.color} opacity-40`} />
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
-        {/* GOD VIEW TABLE */}
-        <div className="xl:col-span-12">
-          <div className="bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-[3rem] overflow-hidden shadow-2xl glass-card">
-            <div className="p-8 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
-              <div className="flex items-center gap-4 bg-slate-50 dark:bg-void/50 border border-slate-200 dark:border-white/5 rounded-2xl px-5 py-3 w-full max-w-md">
-                <Search size={18} className="text-slate-400" />
-                <input 
-                  type="text" 
-                  placeholder="Query Tenant Matrix..." 
-                  className="bg-transparent border-none outline-none text-sm w-full text-slate-900 dark:text-white placeholder:text-slate-400 font-medium"
-                />
-              </div>
-              <div className="flex gap-3">
-                 <button className="px-6 py-3 bg-slate-100 dark:bg-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors">Export Egress Logs</button>
+        
+        {/* SECTION B: THE STRIKE LOG */}
+        <div className="xl:col-span-8">
+          <div className="bg-surface border border-white/5 rounded-[3rem] overflow-hidden shadow-2xl glass-card flex flex-col h-full">
+            <div className="p-8 border-b border-white/5 flex justify-between items-center">
+              <h3 className="text-xl font-black font-geist text-white uppercase flex items-center gap-4">
+                <History size={20} className="text-orange-400" /> Recent Security Strikes
+              </h3>
+              <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" /> Live Audit Stream
               </div>
             </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="overflow-x-auto flex-1">
+              <table className="w-full text-left">
                 <thead>
-                  <tr className="text-left border-b border-slate-100 dark:border-white/5">
-                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tenant Details</th>
-                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Voice Fuel (%)</th>
-                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Node Status</th>
-                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Key Ingress</th>
-                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Intervention</th>
+                  <tr className="border-b border-white/5">
+                    <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Timestamp</th>
+                    <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Target UID</th>
+                    <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Violation Type</th>
+                    <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Details</th>
+                    <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Action Taken</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                  {tenants.map(tenant => (
-                    <tr key={tenant.id} className={`group hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors ${tenant.voiceFuel > 1000 ? 'bg-red-500/[0.03]' : ''}`}>
-                      <td className="px-8 py-6">
-                        <div className="flex items-center gap-4">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black font-geist text-xs ${
-                            tenant.tier === 'Enterprise' ? 'bg-purple-500/20 text-purple-500' : 'bg-teal/20 text-teal'
-                          }`}>
-                            {tenant.id.split('_')[1]}
-                          </div>
-                          <div>
-                            <p className="text-sm font-black text-slate-900 dark:text-white">{tenant.email}</p>
-                            <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest">{tenant.tier} Account</p>
-                          </div>
-                        </div>
+                <tbody className="divide-y divide-white/5">
+                  {strikes.map((s) => (
+                    <tr key={s.id} className={`group hover:bg-white/[0.02] transition-colors ${s.severity === 'HIGH' ? 'bg-red-500/[0.02]' : ''}`}>
+                      <td className="px-8 py-6 text-[11px] font-mono text-slate-400">
+                        {new Date(s.timestamp).toLocaleTimeString()}
+                      </td>
+                      <td className="px-8 py-6 text-xs font-black text-white/60">
+                        {s.user_id}
                       </td>
                       <td className="px-8 py-6">
-                        <div className="w-48">
-                          <div className="flex justify-between items-center mb-2">
-                             <span className={`text-[10px] font-black uppercase ${tenant.voiceFuel > 1000 ? 'text-red-500' : 'text-slate-400'}`}>
-                               {tenant.voiceFuel} / 1000m
-                             </span>
-                             {tenant.voiceFuel > 1000 && <AlertTriangle size={12} className="text-red-500 animate-pulse" />}
-                          </div>
-                          <div className="h-2 w-full bg-slate-100 dark:bg-void rounded-full overflow-hidden">
-                            <motion.div 
-                              initial={{ width: 0 }}
-                              animate={{ width: `${Math.min(100, (tenant.voiceFuel / 1000) * 100)}%` }}
-                              className={`h-full rounded-full ${tenant.voiceFuel > 1000 ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-teal shadow-[0_0_8px_rgba(45,212,191,0.5)]'}`}
-                            />
-                          </div>
-                        </div>
+                        <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-md border ${
+                          s.severity === 'HIGH' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-orange-500/10 text-orange-500 border-orange-500/20'
+                        }`}>
+                          {s.violation_type}
+                        </span>
                       </td>
-                      <td className="px-8 py-6">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${tenant.nodeStatus === 'active' ? 'bg-teal animate-pulse shadow-[0_0_8px_#2DD4BF]' : 'bg-red-500'}`} />
-                          <span className={`text-[10px] font-black uppercase tracking-widest ${tenant.nodeStatus === 'active' ? 'text-teal' : 'text-red-500'}`}>
-                            {tenant.nodeStatus}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-8 py-6">
-                        <code className="text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-white/5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/5">
-                          {tenant.keyId}
-                        </code>
+                      <td className="px-8 py-6 text-xs text-slate-400 max-w-xs truncate">
+                        {s.details}
                       </td>
                       <td className="px-8 py-6 text-right">
-                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button 
-                            onClick={() => handleRefuel(tenant.id)}
-                            className="p-3 bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-xl text-teal hover:bg-teal hover:text-black transition-all"
-                            title="Refuel: Give back 100m"
-                          >
-                            <Zap size={14} />
-                          </button>
-                          <button 
-                            onClick={() => handleRotate(tenant.id)}
-                            className="p-3 bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-xl text-purple-500 hover:bg-purple-500 hover:text-white transition-all"
-                            title="Rotate Neural Keys"
-                          >
-                            <RefreshCw size={14} className={isRotating === tenant.id ? 'animate-spin' : ''} />
-                          </button>
-                          <button 
-                            onClick={() => handleKill(tenant.id)}
-                            className="p-3 bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-xl text-red-500 hover:bg-red-500 hover:text-white transition-all"
-                            title="Emergency Stop Node"
-                          >
-                            <Power size={14} />
-                          </button>
+                        <div className="flex items-center justify-end gap-2 text-red-500 font-black text-[10px] uppercase tracking-widest">
+                          <Lock size={12} /> BLOCKED
                         </div>
                       </td>
                     </tr>
@@ -180,56 +210,128 @@ const Overwatch: React.FC = () => {
                 </tbody>
               </table>
             </div>
+            <div className="p-6 bg-void/50 border-t border-white/5 text-center">
+               <button className="text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-[0.4em] transition-colors">Load Full Audit History (DeepSync Vault)</button>
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION C: NODE MANAGEMENT (THE KILL SWITCH) */}
+        <div className="xl:col-span-4 space-y-10">
+          <div className="p-10 bg-surface border border-white/5 rounded-[3rem] shadow-xl glass-card text-left relative overflow-hidden flex flex-col h-full">
+            <div className="absolute top-0 right-0 p-8 opacity-5">
+              <Database size={120} strokeWidth={1} />
+            </div>
+            
+            <h3 className="text-xl font-black font-geist text-white uppercase flex items-center gap-3 mb-8">
+              <User className="text-teal" size={24} /> Node Management
+            </h3>
+
+            <div className="space-y-6 flex-1">
+              <div className="relative group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal transition-colors" size={18} />
+                <input 
+                  type="text" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyUp={(e) => e.key === 'Enter' && handleSearch()}
+                  placeholder="Search UID or Email..."
+                  className="w-full bg-void/50 border border-white/5 focus:border-teal/50 rounded-2xl py-5 pl-14 pr-4 text-sm font-medium outline-none transition-all placeholder:text-slate-600"
+                />
+              </div>
+
+              <AnimatePresence mode="wait">
+                {selectedNode ? (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="p-8 bg-void/40 border border-white/5 rounded-[2rem] space-y-8"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-sm font-black text-white mb-1">{selectedNode.email}</p>
+                        <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">{selectedNode.user_id}</p>
+                      </div>
+                      <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                        selectedNode.is_suspended ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-teal/10 text-teal border-teal/20'
+                      }`}>
+                        {selectedNode.is_suspended ? 'Offline' : 'Healthy'}
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                       <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                         <span className="text-slate-500">Voice Fuel Usage</span>
+                         <span className={selectedNode.voice_fuel_minutes > 900 ? 'text-red-500' : 'text-teal'}>
+                           {selectedNode.voice_fuel_minutes} / 1000m
+                         </span>
+                       </div>
+                       <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${(selectedNode.voice_fuel_minutes / 1000) * 100}%` }}
+                            className={`h-full ${selectedNode.voice_fuel_minutes > 900 ? 'bg-red-500' : 'bg-teal'}`}
+                          />
+                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-3">
+                      {selectedNode.is_suspended ? (
+                        <button 
+                          onClick={() => updateNodeStatus(selectedNode.user_id, false)}
+                          disabled={isProcessing}
+                          className="w-full py-4 bg-teal text-black font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl hover:shadow-[0_0_30px_rgba(45,212,191,0.4)] transition-all flex items-center justify-center gap-2"
+                        >
+                          {isProcessing ? <RefreshCw className="animate-spin" size={14} /> : <Zap size={14} />}
+                          Reactivate Node
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => updateNodeStatus(selectedNode.user_id, true)}
+                          disabled={isProcessing}
+                          className="w-full py-4 bg-red-600 text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl hover:shadow-[0_0_30px_rgba(239,68,68,0.4)] transition-all flex items-center justify-center gap-2"
+                        >
+                          {isProcessing ? <RefreshCw className="animate-spin" size={14} /> : <Power size={14} />}
+                          Emergency Suspend
+                        </button>
+                      )}
+                      
+                      <button 
+                        onClick={() => resetQuota(selectedNode.user_id)}
+                        disabled={isProcessing}
+                        className="w-full py-4 bg-white/5 border border-white/10 text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                      >
+                        <Flame size={14} /> Reset Quota (Refuel)
+                      </button>
+                    </div>
+                  </motion.div>
+                ) : searchQuery ? (
+                  <div className="p-12 text-center text-slate-500">
+                    <AlertTriangle className="mx-auto mb-4 opacity-20" size={48} />
+                    <p className="text-xs font-black uppercase tracking-widest">No Node Found in Mesh</p>
+                  </div>
+                ) : (
+                  <div className="p-12 text-center border-2 border-dashed border-white/5 rounded-[2rem] text-slate-600">
+                    <p className="text-xs font-black uppercase tracking-widest">Enter Credentials to Inspect Node</p>
+                  </div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-center gap-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">
+               <ShieldCheck size={12} className="text-teal" /> Verified Human Override State
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
-        <div className="p-8 bg-red-500/5 border border-red-500/10 rounded-[2.5rem] flex flex-col gap-6 text-left">
-           <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-red-500/20 flex items-center justify-center text-red-500">
-                <AlertTriangle size={24} />
-              </div>
-              <h3 className="text-xl font-black font-geist text-slate-900 dark:text-white">Emergency Broadcast</h3>
-           </div>
-           <p className="text-xs text-slate-500 dark:text-white/40 leading-relaxed font-medium">
-             Send a mandatory system alert to all active Omni-Nodes. This bypasses user filters and appears as a system critical message.
-           </p>
-           <button className="mt-auto py-4 bg-red-500 text-white font-black uppercase text-[10px] tracking-widest rounded-2xl hover:shadow-[0_0_30px_rgba(239,68,68,0.4)] transition-all">
-             Initialize Broadcast
-           </button>
-        </div>
-
-        <div className="p-8 bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-[2.5rem] flex flex-col gap-6 text-left glass-card">
-           <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-teal/10 flex items-center justify-center text-teal">
-                <ShieldCheck size={24} />
-              </div>
-              <h3 className="text-xl font-black font-geist text-slate-900 dark:text-white">Mesh Compliance</h3>
-           </div>
-           <p className="text-xs text-slate-500 dark:text-white/40 leading-relaxed font-medium">
-             Deploy an architecture-wide Constitution update. Forces all agents to re-parse ethical boundaries.
-           </p>
-           <button className="mt-auto py-4 border border-teal/20 text-teal font-black uppercase text-[10px] tracking-widest rounded-2xl hover:bg-teal hover:text-black transition-all">
-             Global Mesh Sync
-           </button>
-        </div>
-
-        <div className="p-8 bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-[2.5rem] flex flex-col gap-6 text-left glass-card">
-           <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-500">
-                <RefreshCw size={24} />
-              </div>
-              <h3 className="text-xl font-black font-geist text-slate-900 dark:text-white">Key Vending Status</h3>
-           </div>
-           <p className="text-xs text-slate-500 dark:text-white/40 leading-relaxed font-medium">
-             LiveKit KVM healthy. Tokens generated in last 24h: <span className="text-white font-bold">1,242</span>. Success rate: <span className="text-teal font-bold">100%</span>.
-           </p>
-           <div className="mt-auto flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-void rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-400">
-             <div className="w-1.5 h-1.5 rounded-full bg-teal animate-pulse" /> Master Secret Valid
-           </div>
-        </div>
-      </div>
+      <style>{`
+        .glass-card {
+          background: rgba(10, 10, 15, 0.7);
+          backdrop-filter: blur(24px);
+        }
+      `}</style>
     </div>
   );
 };
