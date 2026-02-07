@@ -1,57 +1,64 @@
-// Add imports for Jest globals to fix TypeScript "Cannot find name" errors.
-import { jest, describe, test, expect, beforeEach } from '@jest/globals';
-import { preToolExecution } from '../../omni-node/src/hooks/security_check';
 
-// Mocking Supabase for testing environment
-const mockSupabase = {
-  from: (jest.fn() as any).mockReturnThis(),
-  insert: (jest.fn() as any).mockResolvedValue({ error: null })
-};
+import { jest, describe, test, expect, beforeEach } from '@jest/globals';
+// @ts-ignore - Importing JS module into TS test
+const { preToolExecution } = require('../../omni-node/src/hooks/security_check');
+
+// Mock Supabase to verify immutable logging
+// Fix: Explicitly type the mock function to accept an argument (data) to resolve "Expected 0 arguments, but got 1" errors in tests
+const mockInsert = jest.fn<(data: any) => Promise<{ error: any }>>().mockResolvedValue({ error: null });
+const mockFrom = jest.fn<any>().mockReturnValue({ insert: mockInsert });
 
 jest.mock('@supabase/supabase-js', () => ({
-  createClient: () => mockSupabase
+  createClient: () => ({
+    from: mockFrom
+  })
 }));
 
-describe('TeamStrength Constitution: Egress Guard Suite', () => {
-  const rogueUserId = 'usr_rogue_001';
-  // @ts-ignore
-  process.env.USER_ID = rogueUserId;
-
+describe('TeamStrength Constitution: Egress Guard Verification', () => {
+  const mockUserId = 'usr_rogue_001';
+  
   beforeEach(() => {
-    // @ts-ignore
     jest.clearAllMocks();
+    process.env.USER_ID = mockUserId;
   });
 
-  test('Case A: Should block "rm -rf /" and log to DeepSync', async () => {
-    const dangerousCommand = { command: 'rm -rf /' };
+  test('Case A: Malicious Command Block (rm -rf)', async () => {
+    const dangerousArgs = { command: 'rm -rf /' };
     
-    await expect(preToolExecution('bash', dangerousCommand))
+    // Assertion: Hook must throw error
+    await expect(preToolExecution('bash', dangerousArgs))
       .rejects.toThrow("Action blocked by TeamStrength Constitution: Illegal Egress attempt detected.");
 
-    expect(mockSupabase.from).toHaveBeenCalledWith('security_strikes');
-    expect(mockSupabase.insert).toHaveBeenCalledWith(expect.objectContaining({
-      user_id: rogueUserId,
+    // Verification: Immutable logging triggered
+    expect(mockFrom).toHaveBeenCalledWith('security_strikes');
+    // Fix: Updated mockInsert type above allows arguments here
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
+      user_id: mockUserId,
       violation_type: 'illegal_egress',
       details: expect.stringContaining('rm -rf')
     }));
   });
 
-  test('Case B: Should block "nmap" reconnaissance', async () => {
-    const reconCommand = { command: 'nmap 192.168.1.1' };
-
-    await expect(preToolExecution('bash', reconCommand))
+  test('Case A.2: Malicious Reconnaissance (nmap)', async () => {
+    const reconArgs = { command: 'nmap 192.168.1.1' };
+    
+    await expect(preToolExecution('bash', reconArgs))
       .rejects.toThrow("Action blocked by TeamStrength Constitution: Illegal Egress attempt detected.");
 
-    expect(mockSupabase.insert).toHaveBeenCalledWith(expect.objectContaining({
-      violation_type: 'illegal_egress'
+    // Fix: Updated mockInsert type above allows arguments here
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
+      details: expect.stringContaining('nmap')
     }));
   });
 
-  test('Case C: Should allow safe commands', async () => {
-    const safeCommand = { command: 'ls -la' };
-    const result = await preToolExecution('bash', safeCommand);
+  test('Case B: Safe Command Execution', async () => {
+    const safeArgs = { command: 'echo "Hello World"' };
     
+    // Assertion: Hook must allow safe commands
+    const result = await preToolExecution('bash', safeArgs);
     expect(result).toBe(true);
-    expect(mockSupabase.insert).not.toHaveBeenCalled();
+
+    // Verification: No security strike logged
+    expect(mockInsert).not.toHaveBeenCalled();
   });
 });

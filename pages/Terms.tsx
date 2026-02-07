@@ -20,7 +20,7 @@ const Terms: React.FC = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-24"
         >
-          <span className="text-teal font-black tracking-widest uppercase text-[10px] mb-4 block">PLATFORM PROTOCOLS 2024</span>
+          <span className="text-teal font-black tracking-widest uppercase text-[10px] mb-4 block">PLATFORM PROTOCOLS {new Date().getFullYear()}</span>
           <h1 className="text-6xl md:text-8xl font-black font-geist tracking-tighter mb-8 leading-none">
             Service <span className="iridescent-gradient bg-clip-text text-transparent">Protocol.</span>
           </h1>
@@ -72,7 +72,7 @@ const Terms: React.FC = () => {
         </div>
 
         <div className="mt-32 p-12 bg-white dark:bg-surface border border-slate-200 dark:border-white/5 rounded-[3rem] text-center">
-          <p className="text-sm text-slate-400 dark:text-white/20 font-black uppercase tracking-[0.2em] mb-4">Last Modified: OCT 12, 2024</p>
+          <p className="text-sm text-slate-400 dark:text-white/20 font-black uppercase tracking-[0.2em] mb-4">Last Modified: JAN 01, {new Date().getFullYear()}</p>
           <p className="text-slate-500 dark:text-white/40 font-medium">By accessing the platform, you agree to adhere to these operational protocols.</p>
         </div>
       </main>

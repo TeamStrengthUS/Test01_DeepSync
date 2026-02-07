@@ -5,28 +5,22 @@ A high-performance SaaS platform for team intelligence and agentic operations.
 ## Security & Governance
 
 ### Meaningful Human Control (IHL Compliance)
-TeamStrength is architected to adhere to International Humanitarian Law (IHL) standards for "Meaningful Human Control." This ensures that every autonomous agent operates within a predictable framework and can be immediately deactivated by a human operator.
+TeamStrength is architected to adhere to International Humanitarian Law (IHL) standards. This ensures that every autonomous agent operates within a predictable framework and can be immediately deactivated by a human operator via the **Neural Kill Switch**.
 
-### The "Three Strikes" Policy
-The **Project Overwatch** HUD monitors all agent behavior via immutable audit logs stored in the **DeepSync Vault**.
-- **Automated Suspension:** If an agent triggers 3 security strikes (violations of the Constitution) within a 24-hour window, the node is automatically suspended.
-- **Manual Override:** Admins at `teamstrength.com` have access to the **Neural Kill Switch** to terminate rogue nodes instantly.
+### The "Three Strikes" Rule
+Agentic behavior is monitored by the **Egress Guard**. 
+- **Automated Suspension:** If an agent triggers 3 security strikes (violations of the Constitution) within a 24-hour window, the node is automatically suspended in the DeepSync Vault.
+- **Manual Override:** System administrators at `teamstrength.com` have the authority to trigger an **Emergency Suspend**, which terminates the agent's Docker container and revokes all active Voice Mode tokens.
 
 ### Ingress Control (Pairing Mode)
-To prevent unauthorized access, all agent nodes utilize a "Pairing Mode" workflow:
-1. **Provisioning:** User provides a Bot Token.
-2. **Pairing:** The system generates a unique 6-digit code.
-3. **Verification:** The user must send this code to the bot to verify human ownership and authorize the Neural Mesh link.
-4. **DM Policy:** `TELEGRAM_DM_POLICY=pairing` ensures the bot only responds to paired administrators.
+To prevent unauthorized access to agent nodes:
+- `TELEGRAM_DM_POLICY=pairing` is enforced by default.
+- Agents will only respond to human operators who have successfully verified their 6-digit identity code stored in the DeepSync Vault.
 
-### Egress Guard (The Constitution)
-All tools (bash, web search, etc.) pass through the **Egress Guard Hook**. This system prompt and logical filter blocks dangerous commands:
-- `rm -rf` / `mkfifo` / `nc`
-- Unauthorized network scanning (`nmap`)
-- Data exfiltration to non-whitelisted IPs
-
-> [!WARNING]
-> This system enforces IHL compliance via immutable audit logs. Attempting to bypass the TeamStrength Constitution will result in immediate node suspension and administrative review.
+### Quota Policy (Voice Fuel)
+The LiveKit-powered Voice Mode is governed by a strict usage quota:
+- **Free Tier:** Limited to **1,000 minutes** of total vocal interaction.
+- **Enforcement:** The Key Vender (Edge Function) will refuse to generate tokens once this hard limit is reached.
 
 ---
-© 2024 TEAMSTRENGTH.US
+© 2026 TEAMSTRENGTH.US

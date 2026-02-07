@@ -131,7 +131,7 @@ const Login: React.FC = () => {
       
       {/* Updated Footer links */}
       <footer className="py-8 border-t border-slate-200 dark:border-white/5 px-8 flex justify-between items-center text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest transition-colors duration-300">
-        <span>© 2024 TEAMSTRENGTH.US</span>
+        <span>© {new Date().getFullYear()} TEAMSTRENGTH.US</span>
         <div className="flex gap-8">
           <Link to="/privacy" className="hover:text-teal transition-colors">Privacy</Link>
           <Link to="/terms" className="hover:text-teal transition-colors">Terms</Link>
