@@ -1,13 +1,21 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar.tsx';
 import Logo from '../components/Logo.tsx';
-import { ShieldCheck, Zap, Globe, Lock, ArrowRight, Activity, Cpu, Database } from 'lucide-react';
+import { ShieldCheck, Zap, Globe, Lock, ArrowRight, Activity, Cpu, Database, Command } from 'lucide-react';
 
 const Landing: React.FC = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+
+  const handleAuth = (e: React.FormEvent) => {
+    e.preventDefault();
+    // In a real app, this would use supabase.auth.signInWithPassword
+    // For this build, we follow the mission-control redirect logic
+    navigate('/dashboard/overview');
+  };
 
   return (
     <div className="min-h-screen bg-void text-white overflow-hidden relative selection:bg-teal selection:text-black">
@@ -29,29 +37,17 @@ const Landing: React.FC = () => {
           className="text-left"
         >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-teal/20 bg-teal/5 text-teal text-[10px] font-black tracking-widest uppercase mb-8 backdrop-blur-sm">
-            <ShieldCheck size={12} /> ICRC 2026 COMPLIANT PROTOCOL
+            <ShieldCheck size={12} /> ICRC 2026 COMPLIANT AI-DSS
           </div>
           <h1 className="text-6xl md:text-8xl font-black font-geist tracking-tighter leading-[0.9] mb-8">
             Deploy Autonomous <br />
-            <span className="iridescent-gradient bg-clip-text text-transparent italic">AI-DSS.</span>
+            <span className="iridescent-gradient bg-clip-text text-transparent italic">Intelligence.</span>
           </h1>
           <p className="text-xl md:text-2xl text-white/40 leading-relaxed mb-12 max-w-xl font-medium">
-            TeamStrength is the first Neural Mesh infrastructure compliant with 2026 ICRC Standards for Meaningful Human Control.
+            TeamStrength provides high-performance Neural Mesh clusters architected for absolute state precision and human governance.
           </p>
           
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            <button 
-              onClick={() => navigate('/register')}
-              className="w-full sm:w-auto px-10 py-5 bg-teal text-black font-black rounded-2xl flex items-center justify-center gap-3 hover:shadow-[0_0_30px_rgba(45,212,191,0.5)] transition-all text-lg"
-            >
-              Initialize Node <Zap size={20} />
-            </button>
-            <button onClick={() => navigate('/product')} className="w-full sm:w-auto px-10 py-5 bg-white/5 border border-white/10 text-white font-black rounded-2xl flex items-center justify-center gap-3 hover:bg-white/10 transition-all text-lg">
-              Technical Audit
-            </button>
-          </div>
-
-          {/* System Telemetry instead of generic User proof */}
+          {/* System Telemetry */}
           <div className="mt-16 flex flex-col gap-6">
              <div className="flex items-center gap-10">
                 <div className="flex items-center gap-3">
@@ -73,12 +69,12 @@ const Landing: React.FC = () => {
              
              <div className="flex items-center gap-4 py-3 px-6 bg-white/5 border border-white/5 rounded-2xl w-fit">
                 <Database size={14} className="text-teal" />
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Immutable Memory Ledger V3.1 Active</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Immutable Memory Ledger V3.2 Active</span>
              </div>
           </div>
         </motion.div>
 
-        {/* Auth Mockup / Visual */}
+        {/* Auth Provider Implementation */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -93,20 +89,14 @@ const Landing: React.FC = () => {
                 <p className="text-xs text-white/40 font-medium uppercase tracking-[0.3em]">Initialize Mission Control</p>
              </div>
              
+             {/* Supabase-Style Auth Interface */}
              <div className="space-y-4">
                 <button 
-                  onClick={() => navigate('/dashboard')}
+                  onClick={handleAuth}
                   className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center gap-4 hover:bg-white/10 transition-all font-black text-[10px] uppercase tracking-[0.3em]"
                 >
                   <img src="https://www.google.com/favicon.ico" className="w-4 h-4 grayscale" alt="Google" />
-                  Google Identity
-                </button>
-                <button 
-                  onClick={() => navigate('/dashboard')}
-                  className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center gap-4 hover:bg-white/10 transition-all font-black text-[10px] uppercase tracking-[0.3em]"
-                >
-                  <Globe size={16} className="text-white/40" />
-                  SSO Protocol
+                  Continue with Google
                 </button>
              </div>
 
@@ -115,19 +105,34 @@ const Landing: React.FC = () => {
                 <span className="relative z-10 bg-surface px-4 text-[9px] text-white/10 font-black uppercase tracking-[0.4em]">Encrypted Pairing</span>
              </div>
 
-             <div className="space-y-4">
-                <input 
-                  type="email" 
-                  placeholder="alex@neural-mesh.sh"
-                  className="w-full bg-void/50 border border-white/5 focus:border-teal/50 rounded-2xl py-5 px-6 text-white outline-none transition-all placeholder:text-white/10 font-bold text-sm" 
-                />
+             <form onSubmit={handleAuth} className="space-y-4">
+                <div className="space-y-2">
+                   <label className="text-[9px] font-black text-white/20 uppercase tracking-widest block px-2">Work Email</label>
+                   <input 
+                      type="email" 
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="alex@neural-mesh.sh"
+                      className="w-full bg-void/50 border border-white/5 focus:border-teal/50 rounded-2xl py-5 px-6 text-white outline-none transition-all placeholder:text-white/10 font-bold text-sm" 
+                   />
+                </div>
+                <div className="space-y-2">
+                   <label className="text-[9px] font-black text-white/20 uppercase tracking-widest block px-2">Password</label>
+                   <input 
+                      type="password" 
+                      required
+                      placeholder="••••••••"
+                      className="w-full bg-void/50 border border-white/5 focus:border-teal/50 rounded-2xl py-5 px-6 text-white outline-none transition-all placeholder:text-white/10 font-bold text-sm" 
+                   />
+                </div>
                 <button 
-                  onClick={() => navigate('/dashboard')}
-                  className="w-full py-5 bg-teal text-black font-black rounded-2xl text-sm uppercase tracking-[0.3em] shadow-xl"
+                  type="submit"
+                  className="w-full py-5 bg-teal text-black font-black rounded-2xl text-sm uppercase tracking-[0.3em] shadow-xl hover:shadow-teal/20 transition-all mt-4"
                 >
-                  Request Shard Access
+                  Launch Dashboard
                 </button>
-             </div>
+             </form>
 
              <p className="mt-8 text-center text-[9px] font-black text-white/10 uppercase tracking-[0.4em] leading-relaxed">
                 Subject to <span className="text-teal">Constitutional Governance</span> <br /> Audit Log: ACTIVE
@@ -144,7 +149,7 @@ const Landing: React.FC = () => {
            <ShieldCheck size={12} className="text-teal" /> IHL 2026 COMPLIANT
         </div>
         <p className="text-[10px] font-black text-white/10 uppercase tracking-[0.4em]">
-          © 2026 TEAMSTRENGTH.US • NEURAL MESH V3.1
+          © 2026 TEAMSTRENGTH.US • NEURAL MESH V3.2
         </p>
       </footer>
     </div>
