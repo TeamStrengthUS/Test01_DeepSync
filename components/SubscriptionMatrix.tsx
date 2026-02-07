@@ -12,7 +12,9 @@ import {
   Star, 
   RefreshCw,
   AlertCircle,
-  Package
+  AlertTriangle,
+  Package,
+  ExternalLink
 } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
@@ -27,6 +29,7 @@ interface TierDefinition {
   monthly_price_usd: number;
   features_list: string[];
   is_active: boolean;
+  payment_link_url?: string; // New: Stripe/Commercial Redirect URL
 }
 
 interface PricingTierProps {
@@ -38,7 +41,6 @@ interface PricingTierProps {
 const PricingTier: React.FC<PricingTierProps> = ({ tier, isCurrent, onUpgradeComplete }) => {
   const isPopular = tier.tier_id === 'command_pro';
   
-  // Dynamic icon selection based on tier identity
   const getIcon = () => {
     if (tier.tier_id.includes('scout')) return Globe;
     if (tier.tier_id.includes('command')) return Zap;
@@ -47,6 +49,14 @@ const PricingTier: React.FC<PricingTierProps> = ({ tier, isCurrent, onUpgradeCom
   };
 
   const Icon = getIcon();
+
+  const handleCommercialActivation = () => {
+    if (tier.payment_link_url) {
+      console.log(`[COMMERCIAL] Redirecting to Checkout Shard for: ${tier.tier_id}`);
+      window.open(tier.payment_link_url, '_blank');
+      if (onUpgradeComplete) onUpgradeComplete();
+    }
+  };
 
   return (
     <motion.div 
@@ -93,7 +103,7 @@ const PricingTier: React.FC<PricingTierProps> = ({ tier, isCurrent, onUpgradeCom
                 <span>{feature}</span>
                 {isVoiceFuel && (
                   <span className="inline-flex items-center gap-1.5 text-[8px] font-black text-teal uppercase tracking-widest px-2 py-0.5 bg-teal/5 border border-teal/20 rounded w-fit">
-                    <AlertCircle size={8} /> Hard Operational Limit (IHL)
+                    <AlertTriangle size={8} /> Hard Operational Limit (IHL)
                   </span>
                 )}
               </div>
@@ -103,15 +113,23 @@ const PricingTier: React.FC<PricingTierProps> = ({ tier, isCurrent, onUpgradeCom
       </ul>
 
       <button 
-        onClick={onUpgradeComplete}
-        disabled={isCurrent}
+        onClick={handleCommercialActivation}
+        disabled={isCurrent || !tier.payment_link_url}
         className={`w-full py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] transition-all flex items-center justify-center gap-3 ${
           isCurrent 
           ? 'bg-white/5 text-slate-500 border border-white/10 cursor-default' 
-          : 'bg-teal text-black hover:shadow-[0_0_30px_rgba(45,212,191,0.4)] hover:scale-[1.02]'
+          : !tier.payment_link_url
+            ? 'bg-white/5 text-slate-700 border border-white/5 cursor-not-allowed'
+            : 'bg-teal text-black hover:shadow-[0_0_30px_rgba(45,212,191,0.4)] hover:scale-[1.02]'
         }`}
       >
-        {isCurrent ? 'Active Protocol' : <><CreditCard size={16} /> Initialise Tier</>}
+        {isCurrent ? 'Active Protocol' : (
+          <>
+            <CreditCard size={16} /> 
+            {tier.payment_link_url ? 'Initialize Tier' : 'Access Restricted'}
+            {tier.payment_link_url && <ExternalLink size={12} className="opacity-50" />}
+          </>
+        )}
       </button>
     </motion.div>
   );
@@ -126,7 +144,7 @@ const SubscriptionMatrix: React.FC<{ onUpgradeComplete?: () => void }> = ({ onUp
     const fetchTiers = async () => {
       try {
         setLoading(true);
-        // Querying dynamic tier definitions from DeepSync Vault
+        // Querying dynamic tier definitions from DeepSync Vault including payment links
         const { data, error } = await supabase
           .from('tier_definitions')
           .select('*')
