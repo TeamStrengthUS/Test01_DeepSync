@@ -41,35 +41,35 @@ async def entrypoint(ctx: JobContext):
 
 async def respond(ctx: JobContext, chat_llm, user_msg):
     try:
-        # Create the messages
+        # Create the messages list explicitly
         # Note: Content must be a LIST of strings
-        sys_msg = llm.ChatMessage(
-            role="system", 
-            content=["You are DeepSync, an advanced tactical AI. Keep responses concise, professional, and military-grade."]
-        )
-        user_msg_obj = llm.ChatMessage(
-            role="user", 
-            content=[user_msg]
-        )
+        all_messages = [
+            llm.ChatMessage(
+                role="system", 
+                content=["You are DeepSync, an advanced tactical AI. Keep responses concise, professional, and military-grade."]
+            ),
+            llm.ChatMessage(
+                role="user", 
+                content=[user_msg]
+            )
+        ]
 
         # Initialize Context
         chat_ctx = llm.ChatContext()
         
-        # FIX: Handle 'messages' being a list OR a function (getter)
-        # This fixes the "function object has no attribute append" error
-        if isinstance(chat_ctx.messages, list):
-            chat_ctx.messages.append(sys_msg)
-            chat_ctx.messages.append(user_msg_obj)
-        elif callable(chat_ctx.messages):
-            # If it is a function, CALL it to get the list, then append
-            chat_ctx.messages().append(sys_msg)
-            chat_ctx.messages().append(user_msg_obj)
-        else:
-            # Fallback
-            logger.warning(f"Unknown type for chat_ctx.messages: {type(chat_ctx.messages)}")
-            # Try appending anyway if it acts like a list
-            chat_ctx.messages.append(sys_msg)
-            chat_ctx.messages.append(user_msg_obj)
+        # FORCE FIX: Overwrite the messages attribute to ensure our list is used.
+        # This handles cases where .messages is a function returning a copy.
+        try:
+            if isinstance(chat_ctx.messages, list):
+                chat_ctx.messages.extend(all_messages)
+            else:
+                # If it's a function or property, we force-overwrite it 
+                # with a lambda that returns our list, or the list itself.
+                # This ensures llm.chat() gets the data it needs.
+                chat_ctx.messages = lambda: all_messages
+        except Exception:
+            # Ultimate fallback: just set it as a property
+            chat_ctx.messages = all_messages
 
         # Generate response (Synchronous stream creation)
         stream = chat_llm.chat(chat_ctx=chat_ctx)
