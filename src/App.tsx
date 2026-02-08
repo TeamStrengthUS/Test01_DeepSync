@@ -7,7 +7,7 @@ import { Send, Terminal } from 'lucide-react';
 // --- CONFIGURATION ---
 const serverUrl = import.meta.env.VITE_LIVEKIT_URL;
 // ENSURE YOUR TOKEN IS PASTED BELOW
-const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzMxMDc5NzUsImlkZW50aXR5IjoidXNlci10ZXN0LTAyIiwiaXNzIjoiQVBJcnRteW9HbjZSTU56IiwibmJmIjoxNzcwNTE1OTc1LCJzdWIiOiJ1c2VyLXRlc3QtMDIiLCJ2aWRlbyI6eyJjYW5QdWJsaXNoIjp0cnVlLCJjYW5QdWJsaXNoRGF0YSI6dHJ1ZSwiY2FuU3Vic2NyaWJlIjp0cnVlLCJyb29tIjoidGVzdC1yb29tLTAyIiwicm9vbUpvaW4iOnRydWV9fQ.LZd-oLdaYdhuELqCBoRwuPOd5gy-In7lMCBQiVcHaRc"; 
+const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzMxMDg5ODMsImlkZW50aXR5IjoiY29tbWFuZGVyLTAxIiwiaXNzIjoiQVBJcnRteW9HbjZSTU56IiwibmJmIjoxNzcwNTE2OTgzLCJzdWIiOiJjb21tYW5kZXItMDEiLCJ2aWRlbyI6eyJjYW5QdWJsaXNoIjp0cnVlLCJjYW5QdWJsaXNoRGF0YSI6dHJ1ZSwiY2FuU3Vic2NyaWJlIjp0cnVlLCJyb29tIjoib3BlcmF0aW9uYWwtdGVzdC1hbHBoYSIsInJvb21Kb2luIjp0cnVlfX0.eMfZjxIKmjfwM8eVmb1BrJ2p7MEp7Wj8WoSFbSeTuIw"; 
 
 export default function App() {
   if (!token || token === "") {
