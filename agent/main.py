@@ -29,27 +29,31 @@ async def entrypoint(ctx: JobContext):
 
 async def respond(ctx: JobContext, chat_llm, user_msg):
     try:
-        # FIX: Create ChatContext and append messages explicitly
-        # This avoids the 'no attribute append' error
-        chat_ctx = llm.ChatContext()
-        chat_ctx.messages.append(llm.ChatMessage(
-            role=llm.ChatRole.SYSTEM,
-            text="You are DeepSync, an advanced tactical AI. Keep responses concise, professional, and military-grade."
-        ))
-        chat_ctx.messages.append(llm.ChatMessage(
-            role=llm.ChatRole.USER,
-            text=user_msg
-        ))
+        # Create the message list first
+        # This avoids the 'append' error by passing the list directly to the constructor
+        initial_messages = [
+            llm.ChatMessage(
+                role=llm.ChatRole.SYSTEM,
+                text="You are DeepSync, an advanced tactical AI. Keep responses concise, professional, and military-grade."
+            ),
+            llm.ChatMessage(
+                role=llm.ChatRole.USER,
+                text=user_msg
+            )
+        ]
+
+        # Initialize Context with the messages
+        chat_ctx = llm.ChatContext(messages=initial_messages)
 
         # Generate response
         stream = await chat_llm.chat(chat_ctx=chat_ctx)
         
         full_response = ""
         async for chunk in stream:
-            # Safely extract content from the chunk
             if chunk.choices:
                 choice = chunk.choices
-                if choice.delta and choice.delta.content:
+                # Handle potential variations in delta structure
+                if hasattr(choice.delta, 'content') and choice.delta.content:
                     full_response += choice.delta.content
         
         # Send the reply back to the room
