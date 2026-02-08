@@ -42,6 +42,7 @@ async def entrypoint(ctx: JobContext):
 async def respond(ctx: JobContext, chat_llm, user_msg):
     try:
         # Create the messages
+        # Note: Content must be a LIST of strings
         sys_msg = llm.ChatMessage(
             role="system", 
             content=["You are DeepSync, an advanced tactical AI. Keep responses concise, professional, and military-grade."]
@@ -54,11 +55,19 @@ async def respond(ctx: JobContext, chat_llm, user_msg):
         # Initialize Context
         chat_ctx = llm.ChatContext()
         
-        # Robust Context Population
-        if hasattr(chat_ctx, "messages") and isinstance(chat_ctx.messages, list):
+        # FIX: Handle 'messages' being a list OR a function (getter)
+        # This fixes the "function object has no attribute append" error
+        if isinstance(chat_ctx.messages, list):
             chat_ctx.messages.append(sys_msg)
             chat_ctx.messages.append(user_msg_obj)
+        elif callable(chat_ctx.messages):
+            # If it is a function, CALL it to get the list, then append
+            chat_ctx.messages().append(sys_msg)
+            chat_ctx.messages().append(user_msg_obj)
         else:
+            # Fallback
+            logger.warning(f"Unknown type for chat_ctx.messages: {type(chat_ctx.messages)}")
+            # Try appending anyway if it acts like a list
             chat_ctx.messages.append(sys_msg)
             chat_ctx.messages.append(user_msg_obj)
 
@@ -83,7 +92,7 @@ async def respond(ctx: JobContext, chat_llm, user_msg):
                 "timestamp": int(time.time() * 1000)
             })
             
-            # CRITICAL FIX: Send on 'lk.chat' topic so the frontend sees it
+            # Send on 'lk.chat' topic so the frontend sees it
             await ctx.room.local_participant.publish_data(
                 payload=response_payload.encode('utf-8'),
                 topic="lk.chat",
