@@ -30,28 +30,29 @@ async def entrypoint(ctx: JobContext):
 
 async def respond(ctx: JobContext, chat_llm, user_msg):
     try:
-        # Create the messages
-        # Note: 'content' must be a LIST of strings
+        # FIX 1: Use simple strings for roles ("system", "user") instead of Enums
+        # FIX 2: Content must be a LIST of strings, not a single string
         sys_msg = llm.ChatMessage(
-            role=llm.ChatRole.SYSTEM, 
+            role="system", 
             content=["You are DeepSync, an advanced tactical AI. Keep responses concise, professional, and military-grade."]
         )
         user_msg_obj = llm.ChatMessage(
-            role=llm.ChatRole.USER, 
+            role="user", 
             content=[user_msg]
         )
 
         # Initialize Context
         chat_ctx = llm.ChatContext()
 
-        # FIX: Handle 'messages' being a list OR a function (getter)
-        # This handles the version mismatch you are seeing
-        if callable(chat_ctx.messages):
-            chat_ctx.messages().append(sys_msg)
-            chat_ctx.messages().append(user_msg_obj)
-        else:
+        # FIX 3: Handle 'messages' based on library version (list vs function)
+        # We try to append to it; if that fails, we call it as a function then append
+        try:
             chat_ctx.messages.append(sys_msg)
             chat_ctx.messages.append(user_msg_obj)
+        except AttributeError:
+            # If .messages has no append, it's likely a getter function
+            chat_ctx.messages().append(sys_msg)
+            chat_ctx.messages().append(user_msg_obj)
 
         # Generate response
         stream = await chat_llm.chat(chat_ctx=chat_ctx)
@@ -59,9 +60,9 @@ async def respond(ctx: JobContext, chat_llm, user_msg):
         full_response = ""
         async for chunk in stream:
             if chunk.choices:
-                choice = chunk.choices # Usually list of choices
-                if choice.delta and choice.delta.content:
-                    full_response += choice.delta.content
+                for choice in chunk.choices:
+                    if choice.delta and choice.delta.content:
+                        full_response += choice.delta.content
         
         # Send the reply back to the room
         if full_response:
@@ -73,6 +74,7 @@ async def respond(ctx: JobContext, chat_llm, user_msg):
 
     except Exception as e:
         logger.error(f"Brain Malfunction: {e}")
+        # This prints the full trace so we can see exactly where lines fail
         logger.error(traceback.format_exc())
 
 if __name__ == "__main__":
