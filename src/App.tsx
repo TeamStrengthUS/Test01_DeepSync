@@ -5,7 +5,7 @@ import '@livekit/components-styles';
 import { Mic, MicOff, Video, VideoOff, Send } from 'lucide-react';
 
 const serverUrl = import.meta.env.VITE_LIVEKIT_URL;
-const token = ""; // We will fix token generation later, for now we load the UI
+const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzMxMDM4OTQsImlkZW50aXR5IjoidXNlci10ZXN0LTAxIiwiaXNzIjoiQVBJcnRteW9HbjZSTU56IiwibmJmIjoxNzcwNTExODk0LCJzdWIiOiJ1c2VyLXRlc3QtMDEiLCJ2aWRlbyI6eyJjYW5QdWJsaXNoIjp0cnVlLCJjYW5QdWJsaXNoRGF0YSI6dHJ1ZSwiY2FuU3Vic2NyaWJlIjp0cnVlLCJyb29tIjoidGVzdC1yb29tLTAxIiwicm9vbUpvaW4iOnRydWV9fQ.VeTBuNUcRdbOcAQouxy3ZDuYC6m_Xvjoy0bHgR0gOS4"; // We will fix token generation later, for now we load the UI
 
 export default function App() {
   const [isConnected, setIsConnected] = useState(false);
