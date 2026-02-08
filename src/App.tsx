@@ -1,144 +1,138 @@
-import React, { useEffect, useState } from 'react';
-import { LiveKitRoom, useChat, ChatEntry } from '@livekit/components-react';
-import '@livekit/components-styles';
-import { Room } from 'livekit-client';
-import { Send, Terminal } from 'lucide-react';
+import {
+  LiveKitRoom,
+  RoomAudioRenderer,
+  StartAudio,
+  useConnectionState,
+  useRoomContext,
+} from "@livekit/components-react";
+import { ConnectionState, RoomEvent } from "livekit-client";
+import { useEffect, useState, useCallback } from "react";
 
 // --- CONFIGURATION ---
-const serverUrl = import.meta.env.VITE_LIVEKIT_URL;
-// ENSURE YOUR TOKEN IS PASTED BELOW
-const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzMxMDg5ODMsImlkZW50aXR5IjoiY29tbWFuZGVyLTAxIiwiaXNzIjoiQVBJcnRteW9HbjZSTU56IiwibmJmIjoxNzcwNTE2OTgzLCJzdWIiOiJjb21tYW5kZXItMDEiLCJ2aWRlbyI6eyJjYW5QdWJsaXNoIjp0cnVlLCJjYW5QdWJsaXNoRGF0YSI6dHJ1ZSwiY2FuU3Vic2NyaWJlIjp0cnVlLCJyb29tIjoib3BlcmF0aW9uYWwtdGVzdC1hbHBoYSIsInJvb21Kb2luIjp0cnVlfX0.eMfZjxIKmjfwM8eVmb1BrJ2p7MEp7Wj8WoSFbSeTuIw"; 
+// Ensure these match your environment variables or hardcoded testing values
+const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL || "wss://your-project.livekit.cloud";
+const TOKEN = import.meta.env.VITE_LIVEKIT_TOKEN || "your-token";
 
 export default function App() {
-  if (!token || token === "") {
-    return (
-      <div className="min-h-screen bg-slate-950 text-red-500 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4">⚠️ Neural Link Broken</h1>
-          <p>Access Token is missing. Please update src/App.tsx with your token.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <LiveKitRoom
-      serverUrl={serverUrl}
-      token={token}
+      serverUrl={LIVEKIT_URL}
+      token={TOKEN}
       connect={true}
       data-lk-theme="default"
-      style={{ height: '100vh' }}
     >
       <DeepSyncInterface />
+      <RoomAudioRenderer />
+      <StartAudio label="Click to Enable Audio" />
     </LiveKitRoom>
   );
 }
 
 function DeepSyncInterface() {
-  const { send, chatMessages, isSending } = useChat();
-  const [inputValue, setInputValue] = useState('');
+  const room = useRoomContext();
+  const connectionState = useConnectionState();
+  // Unified variable names: 'messages' and 'input'
+  const [messages, setMessages] = useState<any[]>([]);
+  const [input, setInput] = useState("");
 
-  const handleSend = async () => {
-    if (!input.trim() || !room) return;
+  // --- 1. THE EAR (Listen for Agent) ---
+  useEffect(() => {
+    if (!room) return;
 
-    const userMessage = input.trim();
-    
-    // 1. Update UI immediately (Optimistic UI)
-    setMessages(prev => [...prev, {
-      role: 'user',
-      content: userMessage
-    }]);
+    const handleData = (payload: Uint8Array) => {
+      const str = new TextDecoder().decode(payload);
+      
+      // Attempt to parse JSON response
+      try {
+        const data = JSON.parse(str);
+        const text = data.message || str;
+        
+        setMessages((prev) => [
+          ...prev, 
+          { sender: "DeepSync", text: text, timestamp: Date.now() }
+        ]);
+      } catch (e) {
+        // Fallback for raw text
+        setMessages((prev) => [
+          ...prev, 
+          { sender: "DeepSync", text: str, timestamp: Date.now() }
+        ]);
+      }
+    };
 
-    // 2. Encode Message
+    // Listen to ALL data packets (Broadband Listening)
+    room.on(RoomEvent.DataReceived, handleData);
+
+    return () => {
+      room.off(RoomEvent.DataReceived, handleData);
+    };
+  }, [room]);
+
+  // --- 2. THE MOUTH (Speak to Agent) ---
+  const handleSend = useCallback(async () => {
+    if (!room || !input.trim()) return;
+
+    // A. Optimistic UI: Show user message immediately
+    setMessages((prev) => [
+      ...prev, 
+      { sender: "You", text: input, timestamp: Date.now() }
+    ]);
+
+    // B. Send to Agent
+    const strData = JSON.stringify({ message: input });
     const encoder = new TextEncoder();
-    const payload = JSON.stringify({ 
-      message: userMessage,
-      timestamp: Date.now()
-    });
     
-    // 3. FIX: Send explicitly on 'lk.chat' to match the Agent
+    // CRITICAL: Send on 'lk.chat' to match the backend listener
     await room.localParticipant.publishData(
-      encoder.encode(payload),
+      encoder.encode(strData), 
       { reliable: true, topic: "lk.chat" } 
     );
 
-    setInput('');
-  };
+    setInput("");
+  }, [room, input]);
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
+  // --- 3. CONNECTION STATE UI ---
+  if (connectionState !== ConnectionState.Connected) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-black text-green-500 font-mono">
+        <div>Initializing Neural Link... ({connectionState})</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 font-mono flex flex-col items-center p-4">
-      {/* HEADER */}
-      <header className="w-full max-w-4xl mb-6 border-b border-slate-800 pb-4 flex items-center gap-3">
-        <div className="p-2 bg-blue-600/20 rounded-lg border border-blue-500/50">
-          <Terminal size={24} className="text-blue-400" />
-        </div>
-        <div>
-          <h1 className="text-xl font-bold text-white tracking-wider">TeamStrength DeepSync</h1>
-          <div className="flex items-center gap-2 text-xs text-emerald-400">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+    <div className="flex flex-col h-screen bg-gray-900 text-green-400 font-mono p-4">
+      <h1 className="text-xl border-b border-green-500 pb-2 mb-4">DEEPSYNC TERMINAL</h1>
+      
+      {/* Chat Area */}
+      <div className="flex-1 overflow-y-auto border border-gray-700 bg-black p-4 mb-4 rounded">
+        {messages.map((msg, idx) => (
+          <div key={idx} className={`mb-2 ${msg.sender === "You" ? "text-right" : "text-left"}`}>
+            <span className="font-bold opacity-75 text-xs block">{msg.sender}</span>
+            <span className={`inline-block p-2 rounded ${msg.sender === "You" ? "bg-green-900 text-white" : "bg-gray-800 text-green-300"}`}>
+              {msg.text}
             </span>
-            SYSTEM ONLINE
           </div>
-        </div>
-      </header>
+        ))}
+      </div>
 
-      {/* CHAT DISPLAY */}
-      <main className="flex-1 w-full max-w-4xl bg-slate-900/50 rounded-xl border border-slate-800 overflow-hidden flex flex-col shadow-2xl backdrop-blur-sm">
-        <div className="flex-1 p-6 overflow-y-auto space-y-4 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
-          {chatMessages.length === 0 ? (
-             <div className="h-full flex flex-col items-center justify-center text-slate-600 opacity-50">
-               <p className="mb-2">Awaiting Input...</p>
-             </div>
-          ) : (
-            chatMessages.map((msg, i) => (
-              /* CHANGED LOGIC BELOW: Uses msg.from?.isLocal instead of identity check */
-              <div key={i} className={`flex ${msg.from?.isLocal ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] p-4 rounded-lg ${
-                  msg.from?.isLocal 
-                    ? 'bg-blue-600/20 border border-blue-500/30 text-blue-100' 
-                    : 'bg-slate-800/80 border border-slate-700 text-slate-200'
-                }`}>
-                  <div className="text-xs opacity-50 mb-1 mb-2 font-bold uppercase tracking-wider">
-                    {msg.from?.isLocal ? 'OPERATOR' : 'DEEPSYNC AGENT'}
-                  </div>
-                  <p className="whitespace-pre-wrap">{msg.message}</p>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* INPUT AREA */}
-        <div className="p-4 bg-slate-900 border-t border-slate-800">
-          <div className="flex gap-3">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyPress}
-              placeholder="Enter command or query..."
-              disabled={isSending}
-              className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-slate-600"
-            />
-            <button 
-              onClick={handleSend}
-              disabled={isSending || !inputValue.trim()}
-              className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed px-6 rounded-lg font-semibold transition-all flex items-center gap-2 border border-blue-400/20 shadow-[0_0_15px_rgba(37,99,235,0.3)]"
-            >
-              <Send size={18} />
-            </button>
-          </div>
-        </div>
-      </main>
+      {/* Input Area */}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+          className="flex-1 bg-gray-800 border border-green-500 text-white px-4 py-2 rounded focus:outline-none"
+          placeholder="Enter command..."
+        />
+        <button 
+          onClick={handleSend}
+          className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-6 rounded"
+        >
+          SEND
+        </button>
+      </div>
     </div>
   );
 }
