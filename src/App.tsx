@@ -1,49 +1,126 @@
-import React, { useState, useEffect } from 'react';
-import { Room, RoomEvent, VideoPresets } from 'livekit-client';
-import { LiveKitRoom, VideoConference, useChat } from '@livekit/components-react';
+import React, { useEffect, useState } from 'react';
+import { LiveKitRoom, useChat, ChatEntry } from '@livekit/components-react';
 import '@livekit/components-styles';
-import { Mic, MicOff, Video, VideoOff, Send } from 'lucide-react';
+import { Room } from 'livekit-client';
+import { Send, Terminal } from 'lucide-react';
 
+// --- CONFIGURATION ---
+// These pull from the VITE_ variables we set in Railway
 const serverUrl = import.meta.env.VITE_LIVEKIT_URL;
-const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzMxMDM4OTQsImlkZW50aXR5IjoidXNlci10ZXN0LTAxIiwiaXNzIjoiQVBJcnRteW9HbjZSTU56IiwibmJmIjoxNzcwNTExODk0LCJzdWIiOiJ1c2VyLXRlc3QtMDEiLCJ2aWRlbyI6eyJjYW5QdWJsaXNoIjp0cnVlLCJjYW5QdWJsaXNoRGF0YSI6dHJ1ZSwiY2FuU3Vic2NyaWJlIjp0cnVlLCJyb29tIjoidGVzdC1yb29tLTAxIiwicm9vbUpvaW4iOnRydWV9fQ.VeTBuNUcRdbOcAQouxy3ZDuYC6m_Xvjoy0bHgR0gOS4"; // We will fix token generation later, for now we load the UI
+// PASTE YOUR GENERATED TOKEN BELOW IF IT IS NOT WORKING FROM ENV
+const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzMxMDM4OTQsImlkZW50aXR5IjoidXNlci10ZXN0LTAxIiwiaXNzIjoiQVBJcnRteW9HbjZSTU56IiwibmJmIjoxNzcwNTExODk0LCJzdWIiOiJ1c2VyLXRlc3QtMDEiLCJ2aWRlbyI6eyJjYW5QdWJsaXNoIjp0cnVlLCJjYW5QdWJsaXNoRGF0YSI6dHJ1ZSwiY2FuU3Vic2NyaWJlIjp0cnVlLCJyb29tIjoidGVzdC1yb29tLTAxIiwicm9vbUpvaW4iOnRydWV9fQ.VeTBuNUcRdbOcAQouxy3ZDuYC6m_Xvjoy0bHgR0gOS4"; 
 
 export default function App() {
-  const [isConnected, setIsConnected] = useState(false);
+  // If the token is empty, show an error screen
+  if (!token || token === "") {
+    return (
+      <div className="min-h-screen bg-slate-950 text-red-500 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold mb-4">⚠️ Neural Link Broken</h1>
+          <p>Access Token is missing. Please update src/App.tsx with your token.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-4">
-      <header className="mb-8 text-center">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-          TeamStrength DeepSync
-        </h1>
-        <p className="text-slate-400 mt-2">Neural Link: Active</p>
+    <LiveKitRoom
+      serverUrl={serverUrl}
+      token={token}
+      connect={true}
+      data-lk-theme="default"
+      style={{ height: '100vh' }}
+    >
+      <DeepSyncInterface />
+    </LiveKitRoom>
+  );
+}
+
+function DeepSyncInterface() {
+  const { send, chatMessages, isSending } = useChat();
+  const [inputValue, setInputValue] = useState('');
+
+  // Handle sending the message
+  const handleSend = async () => {
+    if (!inputValue.trim()) return;
+    await send(inputValue);
+    setInputValue('');
+  };
+
+  // Allow pressing "Enter" to send
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-200 font-mono flex flex-col items-center p-4">
+      {/* HEADER */}
+      <header className="w-full max-w-4xl mb-6 border-b border-slate-800 pb-4 flex items-center gap-3">
+        <div className="p-2 bg-blue-600/20 rounded-lg border border-blue-500/50">
+          <Terminal size={24} className="text-blue-400" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-white tracking-wider">TeamStrength DeepSync</h1>
+          <div className="flex items-center gap-2 text-xs text-emerald-400">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            SYSTEM ONLINE
+          </div>
+        </div>
       </header>
 
-      <main className="w-full max-w-4xl bg-slate-800 rounded-xl p-6 shadow-2xl border border-slate-700">
-        <div className="h-96 bg-slate-900 rounded-lg flex items-center justify-center mb-6 border border-slate-800">
-           {/* Placeholder for the 3D Avatar or Video Feed */}
-           <div className="text-center animate-pulse">
-             <div className="w-24 h-24 bg-blue-600 rounded-full mx-auto mb-4 opacity-75 blur-md"></div>
-             <p className="text-blue-300">Awaiting Signal...</p>
-           </div>
+      {/* CHAT DISPLAY */}
+      <main className="flex-1 w-full max-w-4xl bg-slate-900/50 rounded-xl border border-slate-800 overflow-hidden flex flex-col shadow-2xl backdrop-blur-sm">
+        <div className="flex-1 p-6 overflow-y-auto space-y-4 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+          {chatMessages.length === 0 ? (
+             <div className="h-full flex flex-col items-center justify-center text-slate-600 opacity-50">
+               <p className="mb-2">Awaiting Input...</p>
+             </div>
+          ) : (
+            chatMessages.map((msg, i) => (
+              <div key={i} className={`flex ${msg.from?.identity === 'me' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[80%] p-4 rounded-lg ${
+                  msg.from?.identity === 'me' 
+                    ? 'bg-blue-600/20 border border-blue-500/30 text-blue-100' 
+                    : 'bg-slate-800/80 border border-slate-700 text-slate-200'
+                }`}>
+                  <div className="text-xs opacity-50 mb-1 mb-2 font-bold uppercase tracking-wider">
+                    {msg.from?.identity === 'me' ? 'OPERATOR' : 'DEEPSYNC AGENT'}
+                  </div>
+                  <p className="whitespace-pre-wrap">{msg.message}</p>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
-        {/* Chat Interface Placeholder */}
-        <div className="flex gap-2">
-          <input 
-            type="text" 
-            placeholder="Transmission..." 
-            className="flex-1 bg-slate-700 border-none rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none"
-          />
-          <button className="bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-lg font-semibold transition-all flex items-center gap-2">
-            <Send size={18} /> Send
-          </button>
+        {/* INPUT AREA */}
+        <div className="p-4 bg-slate-900 border-t border-slate-800">
+          <div className="flex gap-3">
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyPress}
+              placeholder="Enter command or query..."
+              disabled={isSending}
+              className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-slate-600"
+            />
+            <button 
+              onClick={handleSend}
+              disabled={isSending || !inputValue.trim()}
+              className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed px-6 rounded-lg font-semibold transition-all flex items-center gap-2 border border-blue-400/20 shadow-[0_0_15px_rgba(37,99,235,0.3)]"
+            >
+              <Send size={18} />
+            </button>
+          </div>
         </div>
       </main>
-      
-      <footer className="mt-8 text-slate-500 text-sm">
-        System Status: <span className="text-green-400">ONLINE</span>
-      </footer>
     </div>
   );
 }
