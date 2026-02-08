@@ -30,21 +30,28 @@ async def entrypoint(ctx: JobContext):
 
 async def respond(ctx: JobContext, chat_llm, user_msg):
     try:
-        # Create the message list
-        # FIX: The 'content' field must be a LIST of strings, not a single string.
-        initial_messages = [
-            llm.ChatMessage(
-                role="system", 
-                content=["You are DeepSync, an advanced tactical AI. Keep responses concise, professional, and military-grade."]
-            ),
-            llm.ChatMessage(
-                role="user", 
-                content=[user_msg]
-            )
-        ]
+        # Create the messages
+        # Note: 'content' must be a LIST of strings
+        sys_msg = llm.ChatMessage(
+            role=llm.ChatRole.SYSTEM, 
+            content=["You are DeepSync, an advanced tactical AI. Keep responses concise, professional, and military-grade."]
+        )
+        user_msg_obj = llm.ChatMessage(
+            role=llm.ChatRole.USER, 
+            content=[user_msg]
+        )
 
-        # Initialize Context with the messages
-        chat_ctx = llm.ChatContext(messages=initial_messages)
+        # Initialize Context
+        chat_ctx = llm.ChatContext()
+
+        # FIX: Handle 'messages' being a list OR a function (getter)
+        # This handles the version mismatch you are seeing
+        if callable(chat_ctx.messages):
+            chat_ctx.messages().append(sys_msg)
+            chat_ctx.messages().append(user_msg_obj)
+        else:
+            chat_ctx.messages.append(sys_msg)
+            chat_ctx.messages.append(user_msg_obj)
 
         # Generate response
         stream = await chat_llm.chat(chat_ctx=chat_ctx)
@@ -52,7 +59,7 @@ async def respond(ctx: JobContext, chat_llm, user_msg):
         full_response = ""
         async for chunk in stream:
             if chunk.choices:
-                choice = chunk.choices
+                choice = chunk.choices # Usually list of choices
                 if choice.delta and choice.delta.content:
                     full_response += choice.delta.content
         
