@@ -4,14 +4,8 @@ import '@livekit/components-styles';
 import { Room } from 'livekit-client';
 import { Send, Terminal } from 'lucide-react';
 
-// --- CONFIGURATION ---
-// These pull from the VITE_ variables we set in Railway
-const serverUrl = import.meta.env.VITE_LIVEKIT_URL;
-// PASTE YOUR GENERATED TOKEN BELOW IF IT IS NOT WORKING FROM ENV
-const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzMxMDM4OTQsImlkZW50aXR5IjoidXNlci10ZXN0LTAxIiwiaXNzIjoiQVBJcnRteW9HbjZSTU56IiwibmJmIjoxNzcwNTExODk0LCJzdWIiOiJ1c2VyLXRlc3QtMDEiLCJ2aWRlbyI6eyJjYW5QdWJsaXNoIjp0cnVlLCJjYW5QdWJsaXNoRGF0YSI6dHJ1ZSwiY2FuU3Vic2NyaWJlIjp0cnVlLCJyb29tIjoidGVzdC1yb29tLTAxIiwicm9vbUpvaW4iOnRydWV9fQ.VeTBuNUcRdbOcAQouxy3ZDuYC6m_Xvjoy0bHgR0gOS4"; 
 
 export default function App() {
-  // If the token is empty, show an error screen
   if (!token || token === "") {
     return (
       <div className="min-h-screen bg-slate-950 text-red-500 flex items-center justify-center">
@@ -40,14 +34,12 @@ function DeepSyncInterface() {
   const { send, chatMessages, isSending } = useChat();
   const [inputValue, setInputValue] = useState('');
 
-  // Handle sending the message
   const handleSend = async () => {
     if (!inputValue.trim()) return;
     await send(inputValue);
     setInputValue('');
   };
 
-  // Allow pressing "Enter" to send
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -83,14 +75,15 @@ function DeepSyncInterface() {
              </div>
           ) : (
             chatMessages.map((msg, i) => (
-              <div key={i} className={`flex ${msg.from?.identity === 'me' ? 'justify-end' : 'justify-start'}`}>
+              /* CHANGED LOGIC BELOW: Uses msg.from?.isLocal instead of identity check */
+              <div key={i} className={`flex ${msg.from?.isLocal ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] p-4 rounded-lg ${
-                  msg.from?.identity === 'me' 
+                  msg.from?.isLocal 
                     ? 'bg-blue-600/20 border border-blue-500/30 text-blue-100' 
                     : 'bg-slate-800/80 border border-slate-700 text-slate-200'
                 }`}>
                   <div className="text-xs opacity-50 mb-1 mb-2 font-bold uppercase tracking-wider">
-                    {msg.from?.identity === 'me' ? 'OPERATOR' : 'DEEPSYNC AGENT'}
+                    {msg.from?.isLocal ? 'OPERATOR' : 'DEEPSYNC AGENT'}
                   </div>
                   <p className="whitespace-pre-wrap">{msg.message}</p>
                 </div>
@@ -120,6 +113,10 @@ function DeepSyncInterface() {
             </button>
           </div>
         </div>
+      </main>
+    </div>
+  );
+}
       </main>
     </div>
   );
