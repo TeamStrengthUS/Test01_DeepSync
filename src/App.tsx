@@ -39,9 +39,30 @@ function DeepSyncInterface() {
   const [inputValue, setInputValue] = useState('');
 
   const handleSend = async () => {
-    if (!inputValue.trim()) return;
-    await send(inputValue);
-    setInputValue('');
+    if (!input.trim() || !room) return;
+
+    const userMessage = input.trim();
+    
+    // 1. Update UI immediately (Optimistic UI)
+    setMessages(prev => [...prev, {
+      role: 'user',
+      content: userMessage
+    }]);
+
+    // 2. Encode Message
+    const encoder = new TextEncoder();
+    const payload = JSON.stringify({ 
+      message: userMessage,
+      timestamp: Date.now()
+    });
+    
+    // 3. FIX: Send explicitly on 'lk.chat' to match the Agent
+    await room.localParticipant.publishData(
+      encoder.encode(payload),
+      { reliable: true, topic: "lk.chat" } 
+    );
+
+    setInput('');
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
