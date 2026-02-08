@@ -30,34 +30,29 @@ async def entrypoint(ctx: JobContext):
 
 async def respond(ctx: JobContext, chat_llm, user_msg):
     try:
-        # Create the messages
-        # Note: 'content' must be a LIST of strings
+        # FIX 1: Content must be a LIST of strings ["text"]
         sys_msg = llm.ChatMessage(
             role="system", 
-            content="You are DeepSync, an advanced tactical AI. Keep responses concise, professional, and military-grade."
+            content=["You are DeepSync, an advanced tactical AI. Keep responses concise, professional, and military-grade."]
         )
         user_msg_obj = llm.ChatMessage(
             role="user", 
-            content=user_msg
+            content=[user_msg]
         )
 
         # Initialize Context
         chat_ctx = llm.ChatContext()
         
-        # FIX 1: Robust Context Population
-        # We check if 'messages' is a list (standard) or needs special handling
+        # Robust Context Population
         if hasattr(chat_ctx, "messages") and isinstance(chat_ctx.messages, list):
             chat_ctx.messages.append(sys_msg)
             chat_ctx.messages.append(user_msg_obj)
         else:
-            # Fallback: If the library version is behaving unexpectedly, we log it
-            logger.warning(f"Warning: chat_ctx.messages is type {type(chat_ctx.messages)}")
-            # Try appending anyway if it's not a list, it might be a custom collection
+            # Fallback for version variations
             chat_ctx.messages.append(sys_msg)
             chat_ctx.messages.append(user_msg_obj)
 
-        # FIX 2: Do NOT await the chat method.
-        # chat_llm.chat() returns the stream immediately.
+        # FIX 2: Do NOT await the chat method (synchronous return of stream)
         stream = chat_llm.chat(chat_ctx=chat_ctx)
         
         full_response = ""
