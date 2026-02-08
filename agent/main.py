@@ -2,7 +2,6 @@ import logging
 import asyncio
 from livekit.agents import AutoSubscribe, JobContext, WorkerOptions, cli, llm
 from livekit.plugins import openai
-# Import the packet structure
 from livekit.rtc import DataPacket
 
 # Configure logging
@@ -17,14 +16,11 @@ async def entrypoint(ctx: JobContext):
     # 2. Set up the LLM
     chat_llm = openai.LLM(model="gpt-4o-mini")
 
-    # 3. Define the hearing mechanism (Fixed for latest LiveKit)
+    # 3. Define the hearing mechanism
     @ctx.room.on("data_received")
     def on_data_received(packet: DataPacket):
-        # EXTRACT data from the single packet object
+        # Extract text from the packet
         data = packet.data
-        # participant = packet.participant (Available if needed)
-        
-        # Decode the raw signal into text
         user_msg = data.decode('utf-8')
         logger.info(f"Heard user: {user_msg}")
 
@@ -33,22 +29,30 @@ async def entrypoint(ctx: JobContext):
 
 async def respond(ctx: JobContext, chat_llm, user_msg):
     try:
-        chat_ctx = llm.ChatContext().append(
-            role="system",
+        # FIX: Create ChatContext and append messages explicitly
+        # This avoids the 'no attribute append' error
+        chat_ctx = llm.ChatContext()
+        chat_ctx.messages.append(llm.ChatMessage(
+            role=llm.ChatRole.SYSTEM,
             text="You are DeepSync, an advanced tactical AI. Keep responses concise, professional, and military-grade."
-        ).append(
-            role="user",
+        ))
+        chat_ctx.messages.append(llm.ChatMessage(
+            role=llm.ChatRole.USER,
             text=user_msg
-        )
+        ))
 
+        # Generate response
         stream = await chat_llm.chat(chat_ctx=chat_ctx)
         
         full_response = ""
         async for chunk in stream:
-            if chunk.choices and chunk.choices.delta.content:
-                content = chunk.choices.delta.content
-                full_response += content
+            # Safely extract content from the chunk
+            if chunk.choices:
+                choice = chunk.choices
+                if choice.delta and choice.delta.content:
+                    full_response += choice.delta.content
         
+        # Send the reply back to the room
         if full_response:
             logger.info(f"Replying: {full_response}")
             await ctx.room.local_participant.publish_data(
