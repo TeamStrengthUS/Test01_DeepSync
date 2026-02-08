@@ -1,60 +1,72 @@
 import logging
 import asyncio
+import traceback
 import json
-import time
 from livekit.agents import AutoSubscribe, JobContext, WorkerOptions, cli
 from livekit.rtc import DataPacket
+from openai import AsyncOpenAI
 
 logger = logging.getLogger("deepsync-agent")
 logger.setLevel(logging.INFO)
 
 async def entrypoint(ctx: JobContext):
-    # 1. Connect to the Room
     await ctx.connect(auto_subscribe=AutoSubscribe.SUBSCRIBE_ALL)
     logger.info(f"Brain connected to room: {ctx.room.name}")
-
-    # 2. Define the hearing mechanism
+    
+    openai_client = AsyncOpenAI()
+    
     @ctx.room.on("data_received")
     def on_data_received(packet: DataPacket):
-        raw_text = packet.data.decode('utf-8')
-        
-        # Parse the incoming JSON message
-        try:
-            data_json = json.loads(raw_text)
-            user_msg = data_json.get("message", raw_text)
-        except json.JSONDecodeError:
-            user_msg = raw_text
-            
+        data = packet.data
+        user_msg = data.decode('utf-8')
         logger.info(f"Heard user: {user_msg}")
+        asyncio.create_task(respond(ctx, openai_client, user_msg))
 
-        # Create a task to reply
-        asyncio.create_task(respond(ctx, user_msg))
-
-async def respond(ctx: JobContext, user_msg):
+async def respond(ctx, openai_client, user_msg):
     try:
-        # Construct the response text
-        response_text = f"DeepSync Visual Check. Received: {user_msg}"
-        logger.info(f"Replying: {response_text}")
+        # Parse incoming JSON if needed
+        try:
+            msg_data = json.loads(user_msg)
+            user_text = msg_data.get("message", user_msg)
+        except:
+            user_text = user_msg
         
-        # Package as JSON (Required by most frontends)
-        response_payload = json.dumps({
-            "message": response_text,
-            "timestamp": int(time.time() * 1000)
-        })
+        # Get AI response
+        stream = await openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are DeepSync, an advanced tactical AI."},
+                {"role": "user", "content": user_text}
+            ],
+            stream=True
+        )
         
-        # BROADBAND BROADCAST: Send on ALL common topics.
-        # One of these will match what your frontend is listening for.
-        topics = ["chat", "lk.chat", "_chat"]
+        full_response = ""
+        async for chunk in stream:
+            if chunk.choices and chunk.choices[0].delta.content:
+                full_response += chunk.choices[0].delta.content
         
-        for topic in topics:
-            await ctx.room.local_participant.publish_data(
-                payload=response_payload.encode('utf-8'),
-                topic=topic,
-                reliable=True
-            )
-
+        if full_response:
+            logger.info(f"Replying: {full_response}")
+            
+            # BROADBAND BROADCAST: Send to ALL possible topics
+            topics = ["chat", "lk.chat", "_chat"]
+            payload = json.dumps({"message": full_response})
+            
+            for topic in topics:
+                try:
+                    await ctx.room.local_participant.publish_data(
+                        payload=payload.encode('utf-8'),
+                        reliable=True,
+                        topic=topic
+                    )
+                    logger.info(f"Broadcast to topic: {topic}")
+                except Exception as e:
+                    logger.warning(f"Failed to broadcast to {topic}: {e}")
+            
     except Exception as e:
         logger.error(f"Brain Malfunction: {e}")
+        logger.error(traceback.format_exc())
 
 if __name__ == "__main__":
     cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint))
