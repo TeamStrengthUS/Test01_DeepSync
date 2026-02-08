@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import traceback
 from livekit.agents import AutoSubscribe, JobContext, WorkerOptions, cli, llm
 from livekit.plugins import openai
 from livekit.rtc import DataPacket
@@ -29,16 +30,17 @@ async def entrypoint(ctx: JobContext):
 
 async def respond(ctx: JobContext, chat_llm, user_msg):
     try:
-        # Create the message list first
-        # This avoids the 'append' error by passing the list directly to the constructor
+        # Create the message list
+        # We use "content" instead of "text" which is the standard field name
+        # We use string literals "system" and "user" to avoid Enum key errors
         initial_messages = [
             llm.ChatMessage(
-                role=llm.ChatRole.SYSTEM,
-                text="You are DeepSync, an advanced tactical AI. Keep responses concise, professional, and military-grade."
+                role="system", 
+                content="You are DeepSync, an advanced tactical AI. Keep responses concise, professional, and military-grade."
             ),
             llm.ChatMessage(
-                role=llm.ChatRole.USER,
-                text=user_msg
+                role="user", 
+                content=user_msg
             )
         ]
 
@@ -52,8 +54,7 @@ async def respond(ctx: JobContext, chat_llm, user_msg):
         async for chunk in stream:
             if chunk.choices:
                 choice = chunk.choices
-                # Handle potential variations in delta structure
-                if hasattr(choice.delta, 'content') and choice.delta.content:
+                if choice.delta and choice.delta.content:
                     full_response += choice.delta.content
         
         # Send the reply back to the room
@@ -65,7 +66,9 @@ async def respond(ctx: JobContext, chat_llm, user_msg):
             )
 
     except Exception as e:
+        # Improved error logging to see exactly where it fails
         logger.error(f"Brain Malfunction: {e}")
+        logger.error(traceback.format_exc())
 
 if __name__ == "__main__":
     cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint))
