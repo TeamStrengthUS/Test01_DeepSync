@@ -30,7 +30,7 @@ async def entrypoint(ctx: JobContext):
 
 async def respond(ctx: JobContext, chat_llm, user_msg):
     try:
-        # FIX 1: Content must be a LIST of strings ["text"]
+        # Create messages with content as lists
         sys_msg = llm.ChatMessage(
             role="system", 
             content=["You are DeepSync, an advanced tactical AI. Keep responses concise, professional, and military-grade."]
@@ -40,23 +40,14 @@ async def respond(ctx: JobContext, chat_llm, user_msg):
             content=[user_msg]
         )
 
-        # Initialize Context
-        chat_ctx = llm.ChatContext()
-        
-        # Robust Context Population
-        if hasattr(chat_ctx, "messages") and isinstance(chat_ctx.messages, list):
-            chat_ctx.messages.append(sys_msg)
-            chat_ctx.messages.append(user_msg_obj)
-        else:
-            # Fallback for version variations
-            chat_ctx.messages.append(sys_msg)
-            chat_ctx.messages.append(user_msg_obj)
+        # FIX: Create context with messages directly in constructor
+        chat_ctx = llm.ChatContext(messages=[sys_msg, user_msg_obj])
 
-        # FIX 2: Do NOT await the chat method (synchronous return of stream)
+        # Get the chat stream
         stream = chat_llm.chat(chat_ctx=chat_ctx)
         
         full_response = ""
-        # FIX 3: Iterate over the stream
+        # Iterate over the stream
         async for chunk in stream:
             if chunk.choices:
                 for choice in chunk.choices:
