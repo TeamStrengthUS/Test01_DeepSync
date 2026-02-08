@@ -31,16 +31,15 @@ async def entrypoint(ctx: JobContext):
 async def respond(ctx: JobContext, chat_llm, user_msg):
     try:
         # Create the message list
-        # We use "content" instead of "text" which is the standard field name
-        # We use string literals "system" and "user" to avoid Enum key errors
+        # FIX: The 'content' field must be a LIST of strings, not a single string.
         initial_messages = [
             llm.ChatMessage(
                 role="system", 
-                content="You are DeepSync, an advanced tactical AI. Keep responses concise, professional, and military-grade."
+                content=["You are DeepSync, an advanced tactical AI. Keep responses concise, professional, and military-grade."]
             ),
             llm.ChatMessage(
                 role="user", 
-                content=user_msg
+                content=[user_msg]
             )
         ]
 
@@ -66,7 +65,6 @@ async def respond(ctx: JobContext, chat_llm, user_msg):
             )
 
     except Exception as e:
-        # Improved error logging to see exactly where it fails
         logger.error(f"Brain Malfunction: {e}")
         logger.error(traceback.format_exc())
 
