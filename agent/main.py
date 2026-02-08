@@ -35,7 +35,7 @@ async def respond(ctx: JobContext, user_msg):
         # for standard components.
         await ctx.room.local_participant.publish_data(
             payload=response_text.encode('utf-8'),
-            topic="chat", 
+            topic="lk.chat", 
             reliable=True
         )
 
