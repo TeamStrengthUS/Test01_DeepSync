@@ -9,13 +9,16 @@ logger = logging.getLogger("deepsync-agent")
 logger.setLevel(logging.INFO)
 
 async def entrypoint(ctx: JobContext):
+    # 1. Connect to the Room
     await ctx.connect(auto_subscribe=AutoSubscribe.SUBSCRIBE_ALL)
     logger.info(f"Brain connected to room: {ctx.room.name}")
 
+    # 2. Define the hearing mechanism
     @ctx.room.on("data_received")
     def on_data_received(packet: DataPacket):
         raw_text = packet.data.decode('utf-8')
-        # 1. Parse Incoming JSON
+        
+        # Parse the incoming JSON message
         try:
             data_json = json.loads(raw_text)
             user_msg = data_json.get("message", raw_text)
@@ -23,20 +26,24 @@ async def entrypoint(ctx: JobContext):
             user_msg = raw_text
             
         logger.info(f"Heard user: {user_msg}")
+
+        # Create a task to reply
         asyncio.create_task(respond(ctx, user_msg))
 
 async def respond(ctx: JobContext, user_msg):
     try:
+        # Construct the response text
         response_text = f"DeepSync Visual Check. Received: {user_msg}"
         logger.info(f"Replying: {response_text}")
         
-        # 2. Package as JSON (Frontend expects this format)
+        # Package as JSON (Required by most frontends)
         response_payload = json.dumps({
             "message": response_text,
             "timestamp": int(time.time() * 1000)
         })
         
-        # 3. Broadband Broadcast: Send on ALL topics to find the open channel
+        # BROADBAND BROADCAST: Send on ALL common topics.
+        # One of these will match what your frontend is listening for.
         topics = ["chat", "lk.chat", "_chat"]
         
         for topic in topics:
