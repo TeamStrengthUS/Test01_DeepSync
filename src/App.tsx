@@ -11,7 +11,7 @@ import { useEffect, useState, useCallback } from "react";
 // --- CONFIGURATION ---
 // Ensure these match your environment variables or hardcoded testing values
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL || "wss://your-project.livekit.cloud";
-const TOKEN = import.meta.env.VITE_LIVEKIT_TOKEN || "your-token";
+const TOKEN = import.meta.env.VITE_LIVEKIT_TOKEN || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzMxMDg5ODMsImlkZW50aXR5IjoiY29tbWFuZGVyLTAxIiwiaXNzIjoiQVBJcnRteW9HbjZSTU56IiwibmJmIjoxNzcwNTE2OTgzLCJzdWIiOiJjb21tYW5kZXItMDEiLCJ2aWRlbyI6eyJjYW5QdWJsaXNoIjp0cnVlLCJjYW5QdWJsaXNoRGF0YSI6dHJ1ZSwiY2FuU3Vic2NyaWJlIjp0cnVlLCJyb29tIjoib3BlcmF0aW9uYWwtdGVzdC1hbHBoYSIsInJvb21Kb2luIjp0cnVlfX0.eMfZjxIKmjfwM8eVmb1BrJ2p7MEp7Wj8WoSFbSeTuIw";
 
 export default function App() {
   return (
