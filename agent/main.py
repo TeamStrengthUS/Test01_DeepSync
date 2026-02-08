@@ -30,34 +30,38 @@ async def entrypoint(ctx: JobContext):
 
 async def respond(ctx: JobContext, chat_llm, user_msg):
     try:
-        # FIX 1: Use simple strings for roles ("system", "user") instead of Enums
-        # FIX 2: Content must be a LIST of strings, not a single string
+        # Create the messages
+        # Note: 'content' must be a LIST of strings
         sys_msg = llm.ChatMessage(
             role="system", 
-            content=["You are DeepSync, an advanced tactical AI. Keep responses concise, professional, and military-grade."]
+            content="You are DeepSync, an advanced tactical AI. Keep responses concise, professional, and military-grade."
         )
         user_msg_obj = llm.ChatMessage(
             role="user", 
-            content=[user_msg]
+            content=user_msg
         )
 
         # Initialize Context
         chat_ctx = llm.ChatContext()
-
-        # FIX 3: Handle 'messages' based on library version (list vs function)
-        # We try to append to it; if that fails, we call it as a function then append
-        try:
+        
+        # FIX 1: Robust Context Population
+        # We check if 'messages' is a list (standard) or needs special handling
+        if hasattr(chat_ctx, "messages") and isinstance(chat_ctx.messages, list):
             chat_ctx.messages.append(sys_msg)
             chat_ctx.messages.append(user_msg_obj)
-        except AttributeError:
-            # If .messages has no append, it's likely a getter function
-            chat_ctx.messages().append(sys_msg)
-            chat_ctx.messages().append(user_msg_obj)
+        else:
+            # Fallback: If the library version is behaving unexpectedly, we log it
+            logger.warning(f"Warning: chat_ctx.messages is type {type(chat_ctx.messages)}")
+            # Try appending anyway if it's not a list, it might be a custom collection
+            chat_ctx.messages.append(sys_msg)
+            chat_ctx.messages.append(user_msg_obj)
 
-        # Generate response
-        stream = await chat_llm.chat(chat_ctx=chat_ctx)
+        # FIX 2: Do NOT await the chat method.
+        # chat_llm.chat() returns the stream immediately.
+        stream = chat_llm.chat(chat_ctx=chat_ctx)
         
         full_response = ""
+        # FIX 3: Iterate over the stream
         async for chunk in stream:
             if chunk.choices:
                 for choice in chunk.choices:
@@ -74,7 +78,6 @@ async def respond(ctx: JobContext, chat_llm, user_msg):
 
     except Exception as e:
         logger.error(f"Brain Malfunction: {e}")
-        # This prints the full trace so we can see exactly where lines fail
         logger.error(traceback.format_exc())
 
 if __name__ == "__main__":
