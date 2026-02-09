@@ -1,0 +1,7 @@
+{
+  "name": "TeamStrength SaaS Platform",
+  "description": "A premium, high-performance team analytics and sales performance dashboard with a void-black iridescent aesthetic.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

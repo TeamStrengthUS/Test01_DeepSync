@@ -43,6 +43,6 @@ TeamStrength is architected to adhere to International Humanitarian Law (IHL) an
 1. **Authorize Ingress:** Link your Telegram or Slack tokens in the Channel Matrix.
 2. **Provision Omni-Node:** Launch your dedicated compute shard on the Neural Mesh.
 3. **Refine Skills:** Use the Skill Configurator to bridge tools into your agent's logic.
-4. **Deployment Verification** resume
+
 ---
 © 2026 TEAMSTRENGTH.US | IHL-Compliance Certified Platform

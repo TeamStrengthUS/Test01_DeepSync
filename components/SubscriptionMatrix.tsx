@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -16,10 +15,7 @@ import {
   Package,
   ExternalLink
 } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
-
-// Placeholder for Supabase client - in production use central config
-const supabase = createClient('https://placeholder.supabase.co', 'placeholder-key');
+import { supabase } from '../lib/supabaseClient.ts';
 
 interface TierDefinition {
   tier_id: string;
@@ -29,7 +25,6 @@ interface TierDefinition {
   monthly_price_usd: number;
   features_list: string[];
   is_active: boolean;
-  payment_link_url?: string; // New: Stripe/Commercial Redirect URL
 }
 
 interface PricingTierProps {
@@ -39,6 +34,7 @@ interface PricingTierProps {
 }
 
 const PricingTier: React.FC<PricingTierProps> = ({ tier, isCurrent, onUpgradeComplete }) => {
+  const [isInitializing, setIsInitializing] = useState(false);
   const isPopular = tier.tier_id === 'command_pro';
   
   const getIcon = () => {
@@ -50,11 +46,40 @@ const PricingTier: React.FC<PricingTierProps> = ({ tier, isCurrent, onUpgradeCom
 
   const Icon = getIcon();
 
-  const handleCommercialActivation = () => {
-    if (tier.payment_link_url) {
-      console.log(`[COMMERCIAL] Redirecting to Checkout Shard for: ${tier.tier_id}`);
-      window.open(tier.payment_link_url, '_blank');
-      if (onUpgradeComplete) onUpgradeComplete();
+  const handleCommercialActivation = async () => {
+    if (isCurrent) return;
+    setIsInitializing(true);
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        alert("Authorization Required: Please sign in to upgrade your mission protocols.");
+        return;
+      }
+
+      // Call the Stripe Edge Function for a secure session
+      const { data, error } = await supabase.functions.invoke('stripe', {
+        body: { 
+          tier_id: tier.tier_id, 
+          user_id: user.id,
+          email: user.email 
+        },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        path: '/checkout'
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("Checkout URL generation failed.");
+      }
+    } catch (err) {
+      console.error("[COMMERCIAL] Upgrade failed:", err);
+      alert("Billing Integration Error: Unable to initialize secure checkout. Contact HQ.");
+    } finally {
+      setIsInitializing(false);
     }
   };
 
@@ -92,7 +117,7 @@ const PricingTier: React.FC<PricingTierProps> = ({ tier, isCurrent, onUpgradeCom
       </div>
 
       <ul className="space-y-4 mb-12 flex-1 text-left">
-        {tier.features_list.map((feature, i) => {
+        {(tier.features_list || []).map((feature, i) => {
           const isVoiceFuel = feature.toLowerCase().includes('voice fuel');
           return (
             <li key={i} className="flex items-start gap-3 text-xs font-medium text-slate-300">
@@ -114,20 +139,20 @@ const PricingTier: React.FC<PricingTierProps> = ({ tier, isCurrent, onUpgradeCom
 
       <button 
         onClick={handleCommercialActivation}
-        disabled={isCurrent || !tier.payment_link_url}
+        disabled={isCurrent || isInitializing}
         className={`w-full py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] transition-all flex items-center justify-center gap-3 ${
           isCurrent 
           ? 'bg-white/5 text-slate-500 border border-white/10 cursor-default' 
-          : !tier.payment_link_url
-            ? 'bg-white/5 text-slate-700 border border-white/5 cursor-not-allowed'
+          : isInitializing
+            ? 'bg-white/5 text-slate-700 border border-white/5 cursor-wait'
             : 'bg-teal text-black hover:shadow-[0_0_30px_rgba(45,212,191,0.4)] hover:scale-[1.02]'
         }`}
       >
         {isCurrent ? 'Active Protocol' : (
           <>
             <CreditCard size={16} /> 
-            {tier.payment_link_url ? 'Initialize Tier' : 'Access Restricted'}
-            {tier.payment_link_url && <ExternalLink size={12} className="opacity-50" />}
+            {isInitializing ? 'Handshaking...' : 'Initialize Tier'}
+            {!isInitializing && <ExternalLink size={12} className="opacity-50" />}
           </>
         )}
       </button>
@@ -137,6 +162,7 @@ const PricingTier: React.FC<PricingTierProps> = ({ tier, isCurrent, onUpgradeCom
 
 const SubscriptionMatrix: React.FC<{ onUpgradeComplete?: () => void }> = ({ onUpgradeComplete }) => {
   const [tiers, setTiers] = useState<TierDefinition[]>([]);
+  const [currentTier, setCurrentTier] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -144,15 +170,16 @@ const SubscriptionMatrix: React.FC<{ onUpgradeComplete?: () => void }> = ({ onUp
     const fetchTiers = async () => {
       try {
         setLoading(true);
-        // Querying dynamic tier definitions from DeepSync Vault including payment links
-        const { data, error } = await supabase
-          .from('tier_definitions')
-          .select('*')
-          .eq('is_active', true)
-          .order('monthly_price_usd', { ascending: true });
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        const [tiersRes, subRes] = await Promise.all([
+          supabase.from('tier_definitions').select('*').eq('is_active', true).order('monthly_price_usd', { ascending: true }),
+          user ? supabase.from('subscriptions').select('tier').eq('user_id', user.id).maybeSingle() : Promise.resolve({ data: null })
+        ]);
 
-        if (error) throw error;
-        setTiers(data || []);
+        if (tiersRes.error) throw tiersRes.error;
+        setTiers(tiersRes.data || []);
+        setCurrentTier(subRes.data?.tier || 'scout_free');
       } catch (err: any) {
         console.error('[PRICING] Error fetching dynamic tiers:', err);
         setError('Failed to sync tier logistics from DeepSync Vault.');
@@ -219,7 +246,7 @@ const SubscriptionMatrix: React.FC<{ onUpgradeComplete?: () => void }> = ({ onUp
                 <PricingTier 
                   key={tier.tier_id} 
                   tier={tier} 
-                  isCurrent={tier.tier_id === 'scout_free'}
+                  isCurrent={tier.tier_id === currentTier}
                   onUpgradeComplete={onUpgradeComplete}
                 />
               ))}

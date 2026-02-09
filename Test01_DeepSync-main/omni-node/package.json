@@ -1,0 +1,12 @@
+{
+  "name": "teamstrength-omni-node",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "start": "bash start.sh",
+    "build": "echo \"no build step\""
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.7"
+  }
+}
